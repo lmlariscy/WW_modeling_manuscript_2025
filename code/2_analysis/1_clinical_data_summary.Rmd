@@ -1,0 +1,153 @@
+---
+title: "Clinical data summary stats"
+author: "Leah Lariscy"
+output: html_document
+---
+
+# Load packages
+
+```{r}
+library(tidyverse)
+library(tsibble)
+library(here)
+```
+
+# Load data
+
+```{r}
+#this data is population normalized (per 100,000)
+weekly <- readRDS(
+  here("data/processed_data/clinical/covid_cases_weekly.rds")) %>% 
+  mutate(date = as.Date(week, format = "%Y-%m-%d"))
+
+#this data is not population normalized
+weekly_nonnorm <- readRDS(
+  here("data/processed_data/clinical/covid_cases_weekly_nonnorm.rds")) %>% 
+  mutate(date = as.Date(week, format = "%Y-%m-%d"))
+```
+
+# Summarize
+
+## Total reported cases
+
+```{r}
+sum(weekly$cases.reported)
+sum(weekly_nonnorm$cases.reported)
+```
+
+## Highest case weeks
+
+```{r}
+weekly_nonnorm %>% arrange(desc(cases.reported))
+```
+
+## Lowest case weeks
+
+```{r}
+weekly_nonnorm %>% arrange(cases.reported)
+```
+
+## Highest test weeks
+
+```{r}
+weekly_nonnorm %>% arrange(desc(pcr_tests))
+```
+
+## Lowest test weeks
+
+```{r}
+weekly_nonnorm %>% arrange(pcr_tests)
+```
+
+## Stats
+
+```{r}
+weekly_long <- weekly %>% select(cases.reported, pcr_tests) %>% 
+  rename("Reported Cases" = cases.reported,
+         "Tests Administered" = pcr_tests) %>% 
+  pivot_longer(cols = c("Reported Cases","Tests Administered"),
+              names_to = "Clinical Metric")
+
+summary <- weekly_long %>% group_by(`Clinical Metric`) %>% 
+  summarise(Mean = mean(value),
+            Median = median(value),
+            SD = sd(value),
+            Min = min(value),
+            Max = max(value))
+
+write_csv(summary, here("data/processed_data/clinical/summary_stats.csv"))
+```
+
+# Visualize
+
+```{r}
+cases_reported_fig <- weekly %>% ggplot(aes(week,cases.reported)) +
+  geom_point(color = "#FB6A4A", size = 3) +
+  geom_line(alpha = .6, color = "#FB6A4A", linewidth = 2) +
+  geom_vline(xintercept = 18974,linetype = 2, size = .8) +
+  geom_hline(yintercept = 1550, alpha = 0) +
+  #geom_area(alpha = .7, fill = "#FB6A4A") +
+  ylab("Cases reported") +
+  xlab("") +
+  ggthemes::theme_clean() +
+  scale_x_yearweek(date_breaks = "3 months",
+                   date_labels = "%b '%y") +
+  theme(axis.text.x = element_text(angle = 15,
+                                   hjust = .9,
+                                   size = 12),
+        axis.text.y = element_text(angle = 15,
+                                   size = 12),
+        axis.title.y = element_text(size = 14)) +
+  annotate("label", label="Wave 1", x=18505, y=1450, 
+           fill = "#cd6155", size = 5) +
+  annotate("label", label="Wave 2", x=18635, y=1450, 
+           fill = "#5dade2", size = 5) +
+  annotate("label", label="Wave 3", x=18860, y=1450, 
+           fill = "#58d68d", size = 5) +
+  annotate("label", label="Wave 4", x=19000, y=1450, 
+           fill = "#f5b041", size = 5) +
+  annotate("label", label="Wave 5", x=19200, y=1450, 
+           fill = "#a569bd", size = 5) +
+  annotate("label", label="Wave 6", x=19330, y=1450, 
+           fill = "#f4d03f", size = 5)
+
+cases_reported_fig
+
+saveRDS(cases_reported_fig, here("figures/timeseries/cases_reported.rds"))
+```
+
+```{r}
+test_admin_fig <- weekly %>% ggplot(aes(week,pcr_tests)) +
+  geom_point(color = "#A50F15", size = 3) +
+  geom_line(alpha = .6, color = "#A50F15", linewidth = 2) +
+  geom_vline(xintercept = 18974,linetype = 2, size = .8) +
+  #geom_area(alpha = .7, fill = "#A50F15") +
+  ylab("Tests admin.") +
+  xlab("") +
+  ggthemes::theme_clean() +
+    scale_x_yearweek(date_breaks = "3 months",
+                   date_labels = "%b '%y") +
+  theme(axis.text.x = element_text(angle = 15,
+                                   hjust = .9,
+                                   size = 12),
+        axis.text.y = element_text(angle = 15,
+                                   size = 12),
+        axis.title.y = element_text(size = 14))
+
+test_admin_fig
+
+saveRDS(test_admin_fig, here("figures/timeseries/test_admin.rds"))
+```
+
+```{r}
+combo_fig <- ggarrange(cases_reported_fig,test_admin_fig,
+          nrow = 2,
+          ncol = 1,
+          labels = c("a","b"))
+
+ggsave(here("figures/timeseries/clinical_combined.tiff"),
+       width = 9,
+       height = 5)
+
+saveRDS(combo_fig, here("figures/timeseries/clinical_combined.rds"))
+```

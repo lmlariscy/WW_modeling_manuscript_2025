@@ -1,0 +1,161 @@
+File Name,LL_21JANUARY22_Omicron_Backlog.pcrd,,,,,
+Created By User,admin,,,,,
+Notes,,,,,,
+ID,,,,,,
+Run Started,01/21/2022 19:24:22 UTC,,,,,
+Run Ended,01/21/2022 20:42:14 UTC,,,,,
+Sample Vol,20,,,,,
+Lid Temp,95,,,,,
+Protocol File Name,Omicon_Variant_Assay.prcl,,,,,
+Plate Setup File Name,LL_21JANUARY22_Omicron_Backlog.pltd,,,,,
+Base Serial Number,CT053861,,,,,
+Optical Head Serial Number,786BR06571,,,,,
+CFX Maestro Version,5.2.008.0222. ,,,,,
+,,,,,,
+Well group,All Wells,,,,,
+Amplification step,5,,,,,
+Melt step,,,,,,
+,,,,,,
+,,,,,,
+Well,Fluor,Target,Content,Sample,Cq,Starting Quantity (SQ)
+A01,FAM,Hughes_Omicron,Std,10^-7,22.7617476001628,280000
+A02,FAM,Hughes_Omicron,Std,10^-7,22.7462009168231,280000
+A03,FAM,Hughes_Omicron,Std,10^-7,22.6819452478886,280000
+A05,FAM,Hughes_Omicron,Unkn,NO 129,NaN,NaN
+A06,FAM,Hughes_Omicron,Unkn,NO 129,NaN,NaN
+A07,FAM,Hughes_Omicron,Unkn,NO 129,NaN,NaN
+A09,FAM,Hughes_Omicron,Unkn,CC 131,NaN,NaN
+A10,FAM,Hughes_Omicron,Unkn,CC 131,NaN,NaN
+A11,FAM,Hughes_Omicron,Unkn,CC 131,NaN,NaN
+A13,FAM,Hughes_Omicron,Unkn,MI 134,NaN,NaN
+A14,FAM,Hughes_Omicron,Unkn,MI 134,NaN,NaN
+A15,FAM,Hughes_Omicron,Unkn,MI 134,NaN,NaN
+A17,FAM,Hughes_Omicron,Unkn,NO 137,NaN,NaN
+A18,FAM,Hughes_Omicron,Unkn,NO 137,36.3699516812597,1.98750519341001
+A19,FAM,Hughes_Omicron,Unkn,NO 137,NaN,NaN
+A21,FAM,Hughes_Omicron,Unkn,CC 139,NaN,NaN
+A22,FAM,Hughes_Omicron,Unkn,CC 139,37.9756005113693,0.448969515852406
+A23,FAM,Hughes_Omicron,Unkn,CC 139,39.8346426215774,0.0801979746329458
+C01,FAM,Hughes_Omicron,Std,10^-8,24.207984152096,28000
+C02,FAM,Hughes_Omicron,Std,10^-8,24.208858230519,28000
+C03,FAM,Hughes_Omicron,Std,10^-8,24.019414109621,28000
+C05,FAM,Hughes_Omicron,Unkn,MI 129,NaN,NaN
+C06,FAM,Hughes_Omicron,Unkn,MI 129,NaN,NaN
+C07,FAM,Hughes_Omicron,Unkn,MI 129,NaN,NaN
+C09,FAM,Hughes_Omicron,Unkn,NO 132,NaN,NaN
+C10,FAM,Hughes_Omicron,Unkn,NO 132,NaN,NaN
+C11,FAM,Hughes_Omicron,Unkn,NO 132,NaN,NaN
+C13,FAM,Hughes_Omicron,Unkn,CC 134,39.6887475927831,0.0918056882852277
+C14,FAM,Hughes_Omicron,Unkn,CC 134,NaN,NaN
+C15,FAM,Hughes_Omicron,Unkn,CC 134,NaN,NaN
+C17,FAM,Hughes_Omicron,Unkn,MI 137,NaN,NaN
+C18,FAM,Hughes_Omicron,Unkn,MI 137,NaN,NaN
+C19,FAM,Hughes_Omicron,Unkn,MI 137,39.9298918094318,0.0734237248510034
+C21,FAM,Hughes_Omicron,Unkn,NO 140,36.6724455898797,1.5017194512505
+C22,FAM,Hughes_Omicron,Unkn,NO 140,36.0046151653847,2.78814114372063
+C23,FAM,Hughes_Omicron,Unkn,NO 140,36.6637674980091,1.51384270754966
+E01,FAM,Hughes_Omicron,Std,10^-9,30.0527289578961,2800
+E02,FAM,Hughes_Omicron,Std,10^-9,30.4211317170869,2800
+E03,FAM,Hughes_Omicron,Std,10^-9,30.02102397405,2800
+E05,FAM,Hughes_Omicron,Unkn,CC 129,NaN,NaN
+E06,FAM,Hughes_Omicron,Unkn,CC 129,NaN,NaN
+E07,FAM,Hughes_Omicron,Unkn,CC 129,NaN,NaN
+E09,FAM,Hughes_Omicron,Unkn,MI 132,NaN,NaN
+E10,FAM,Hughes_Omicron,Unkn,MI 132,NaN,NaN
+E11,FAM,Hughes_Omicron,Unkn,MI 132,NaN,NaN
+E13,FAM,Hughes_Omicron,Unkn,NO 135,NaN,NaN
+E14,FAM,Hughes_Omicron,Unkn,NO 135,NaN,NaN
+E15,FAM,Hughes_Omicron,Unkn,NO 135,NaN,NaN
+E17,FAM,Hughes_Omicron,Unkn,CC 137,NaN,NaN
+E18,FAM,Hughes_Omicron,Unkn,CC 137,NaN,NaN
+E19,FAM,Hughes_Omicron,Unkn,CC 137,NaN,NaN
+E21,FAM,Hughes_Omicron,Unkn,MI 140,37.1592765164047,0.956521226299408
+E22,FAM,Hughes_Omicron,Unkn,MI 140,36.7276023642757,1.42690304420878
+E23,FAM,Hughes_Omicron,Unkn,MI 140,38.1348129169433,0.38739314465873
+G01,FAM,Hughes_Omicron,Std,10^-10,33.0686956718869,280
+G02,FAM,Hughes_Omicron,Std,10^-10,33.136247375977,280
+G03,FAM,Hughes_Omicron,Std,10^-10,33.12445341195,280
+G05,FAM,Hughes_Omicron,Unkn,NO 130,NaN,NaN
+G06,FAM,Hughes_Omicron,Unkn,NO 130,NaN,NaN
+G07,FAM,Hughes_Omicron,Unkn,NO 130,NaN,NaN
+G09,FAM,Hughes_Omicron,Unkn,CC 132,NaN,NaN
+G10,FAM,Hughes_Omicron,Unkn,CC 132,NaN,NaN
+G11,FAM,Hughes_Omicron,Unkn,CC 132,NaN,NaN
+G13,FAM,Hughes_Omicron,Unkn,MI 135,NaN,NaN
+G14,FAM,Hughes_Omicron,Unkn,MI 135,NaN,NaN
+G15,FAM,Hughes_Omicron,Unkn,MI 135,NaN,NaN
+G17,FAM,Hughes_Omicron,Unkn,NO 138,35.6910754246745,3.72802584980882
+G18,FAM,Hughes_Omicron,Unkn,NO 138,37.9229730851837,0.471404170341267
+G19,FAM,Hughes_Omicron,Unkn,NO 138,39.4662280980606,0.112825802776231
+G21,FAM,Hughes_Omicron,Unkn,CC 140,36.5366576021815,1.70305259187879
+G22,FAM,Hughes_Omicron,Unkn,CC 140,36.2235050972353,2.27633617937187
+G23,FAM,Hughes_Omicron,Unkn,CC 140,37.2254697019545,0.899620550106012
+I01,FAM,Hughes_Omicron,Std,10^-11,36.2723433228629,28
+I02,FAM,Hughes_Omicron,Std,10^-11,NaN,28
+I03,FAM,Hughes_Omicron,Std,10^-11,NaN,28
+I05,FAM,Hughes_Omicron,Unkn,MI 130,NaN,NaN
+I06,FAM,Hughes_Omicron,Unkn,MI 130,NaN,NaN
+I07,FAM,Hughes_Omicron,Unkn,MI 130,NaN,NaN
+I09,FAM,Hughes_Omicron,Unkn,NO 133,NaN,NaN
+I10,FAM,Hughes_Omicron,Unkn,NO 133,NaN,NaN
+I11,FAM,Hughes_Omicron,Unkn,NO 133,NaN,NaN
+I13,FAM,Hughes_Omicron,Unkn,CC 135,NaN,NaN
+I14,FAM,Hughes_Omicron,Unkn,CC 135,NaN,NaN
+I15,FAM,Hughes_Omicron,Unkn,CC 135,NaN,NaN
+I17,FAM,Hughes_Omicron,Unkn,MI 138,NaN,NaN
+I18,FAM,Hughes_Omicron,Unkn,MI 138,NaN,NaN
+I19,FAM,Hughes_Omicron,Unkn,MI 138,NaN,NaN
+I21,FAM,Hughes_Omicron,Unkn,NO 141,34.585118971488,10.3872567078116
+I22,FAM,Hughes_Omicron,Unkn,NO 141,35.0167120146944,6.96359731866291
+I23,FAM,Hughes_Omicron,Unkn,NO 141,34.9441690801532,7.44773039800882
+K01,FAM,Hughes_Omicron,Std,10^-12,NaN,2.8
+K02,FAM,Hughes_Omicron,Std,10^-12,36.2232951084362,2.8
+K03,FAM,Hughes_Omicron,Std,10^-12,NaN,2.8
+K05,FAM,Hughes_Omicron,Unkn,CC 130,NaN,NaN
+K06,FAM,Hughes_Omicron,Unkn,CC 130,38.7534237899419,0.21838925420707
+K07,FAM,Hughes_Omicron,Unkn,CC 130,NaN,NaN
+K09,FAM,Hughes_Omicron,Unkn,MI 133,NaN,NaN
+K10,FAM,Hughes_Omicron,Unkn,MI 133,NaN,NaN
+K11,FAM,Hughes_Omicron,Unkn,MI 133,NaN,NaN
+K13,FAM,Hughes_Omicron,Unkn,NO 136,NaN,NaN
+K14,FAM,Hughes_Omicron,Unkn,NO 136,NaN,NaN
+K15,FAM,Hughes_Omicron,Unkn,NO 136,NaN,NaN
+K17,FAM,Hughes_Omicron,Unkn,CC 138,37.8632219851827,0.498237551275094
+K18,FAM,Hughes_Omicron,Unkn,CC 138,38.485457678246,0.279935006797839
+K19,FAM,Hughes_Omicron,Unkn,CC 138,39.3163109962636,0.129638217407913
+K21,FAM,Hughes_Omicron,Unkn,MI 141,33.8974770964592,19.6425864962342
+K22,FAM,Hughes_Omicron,Unkn,MI 141,33.9367964875259,18.9398738469095
+K23,FAM,Hughes_Omicron,Unkn,MI 141,33.6521809571041,24.6548593862894
+M01,FAM,Hughes_Omicron,Std,10^-13,37.2189621233982,0.28
+M02,FAM,Hughes_Omicron,Std,10^-13,36.2348619341086,0.28
+M03,FAM,Hughes_Omicron,Std,10^-13,36.1937765953657,0.28
+M05,FAM,Hughes_Omicron,Unkn,NO 131,NaN,NaN
+M06,FAM,Hughes_Omicron,Unkn,NO 131,38.541596089226,0.2657466955402
+M07,FAM,Hughes_Omicron,Unkn,NO 131,NaN,NaN
+M09,FAM,Hughes_Omicron,Unkn,CC 133,NaN,NaN
+M10,FAM,Hughes_Omicron,Unkn,CC 133,NaN,NaN
+M11,FAM,Hughes_Omicron,Unkn,CC 133,NaN,NaN
+M13,FAM,Hughes_Omicron,Unkn,MI 136,NaN,NaN
+M14,FAM,Hughes_Omicron,Unkn,MI 136,38.6986189497186,0.22976506332827
+M15,FAM,Hughes_Omicron,Unkn,MI 136,NaN,NaN
+M17,FAM,Hughes_Omicron,Unkn,NO 139,NaN,NaN
+M18,FAM,Hughes_Omicron,Unkn,NO 139,NaN,NaN
+M19,FAM,Hughes_Omicron,Unkn,NO 139,NaN,NaN
+M21,FAM,Hughes_Omicron,Unkn,CC 141,34.6310050515512,9.95490054387529
+M22,FAM,Hughes_Omicron,Unkn,CC 141,35.5370181922297,4.30001000516723
+M23,FAM,Hughes_Omicron,Unkn,CC 141,34.5293325385588,10.9382683167239
+O01,FAM,Hughes_Omicron,Neg Ctrl,PCR H2O,NaN,NaN
+O02,FAM,Hughes_Omicron,Neg Ctrl,PCR H2O,NaN,NaN
+O03,FAM,Hughes_Omicron,Neg Ctrl,PCR H2O,NaN,NaN
+O05,FAM,Hughes_Omicron,Unkn,MI 131,NaN,NaN
+O06,FAM,Hughes_Omicron,Unkn,MI 131,NaN,NaN
+O07,FAM,Hughes_Omicron,Unkn,MI 131,NaN,NaN
+O09,FAM,Hughes_Omicron,Unkn,NO 134,NaN,NaN
+O10,FAM,Hughes_Omicron,Unkn,NO 134,NaN,NaN
+O11,FAM,Hughes_Omicron,Unkn,NO 134,NaN,NaN
+O13,FAM,Hughes_Omicron,Unkn,CC 136,NaN,NaN
+O14,FAM,Hughes_Omicron,Unkn,CC 136,NaN,NaN
+O15,FAM,Hughes_Omicron,Unkn,CC 136,NaN,NaN
+O17,FAM,Hughes_Omicron,Unkn,MI 139,NaN,NaN
+O18,FAM,Hughes_Omicron,Unkn,MI 139,38.575256498565,0.257586666334486
+O19,FAM,Hughes_Omicron,Unkn,MI 139,37.9864513095866,0.44447837829572

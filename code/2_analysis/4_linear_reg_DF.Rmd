@@ -1,0 +1,818 @@
+---
+title: "Linear regression - Detection Frequency"
+author: "Leah Lariscy"
+output: html_document
+---
+
+# Load Packages
+
+```{r}
+knitr::opts_chunk$set(message=F)
+```
+
+```{r}
+library(tidyverse)
+library(here)
+library(tidymodels)
+library(tsibble)
+library(ingredients)
+library(workboots)
+library(ggpmisc)
+```
+
+# Load Data
+
+```{r}
+# n = 6 (original data)
+data_n6 <- readRDS(here("data/processed_data/wbe_covid_n6_week.rds")) %>% drop_na()
+
+# n = 5
+data_n5 <- readRDS(here("data/processed_data/wbe_covid_n5_week.rds")) %>% drop_na()
+
+# n = 4
+data_n4 <- readRDS(here("data/processed_data/wbe_covid_n4_week.rds")) %>% drop_na()
+
+# n = 3
+data_n3 <- readRDS(here("data/processed_data/wbe_covid_n3_week.rds")) %>% drop_na()
+
+# n = 2
+data_n2 <- readRDS(here("data/processed_data/wbe_covid_n2_week.rds")) %>% drop_na()
+
+# n = 1
+data_n1 <- readRDS(here("data/processed_data/wbe_covid_n1_week.rds")) %>% drop_na()
+```
+
+# Split data
+
+```{r}
+data_n6_train <- data_n6 %>% head(n = 73) #training data
+data_n6_test <- data_n6 %>% tail(n = 52) #non-training data
+
+data_n5_train <- data_n5 %>% head(n = 73)
+data_n5_test <- data_n5 %>% tail(n = 52)
+
+data_n4_train <- data_n4 %>% head(n = 73)
+data_n4_test <- data_n4 %>% tail(n = 52)
+
+data_n3_train <- data_n3 %>% head(n = 73)
+data_n3_test <- data_n3 %>% tail(n = 52)
+
+data_n2_train <- data_n2 %>% head(n = 73)
+data_n2_test <- data_n2 %>% tail(n = 52)
+
+data_n1_train <- data_n1 %>% head(n = 73)
+data_n1_test <- data_n1 %>% tail(n = 52)
+```
+
+# Model prep
+
+## Define model
+
+```{r}
+#define linear regression model
+lm_model <- linear_reg() %>% 
+  set_engine("lm") %>% 
+  set_mode("regression") 
+
+#define null model
+null_model <- null_model() %>% 
+  set_engine("parsnip") %>% 
+  set_mode("regression")
+```
+
+## Define recipes
+
+```{r}
+df_n6_recipe <- recipe(log10_cases ~ 
+              A_N1_POS+A_N2_POS+B_N1_POS+B_N2_POS+C_N1_POS+C_N2_POS+week,
+              data = data_n6_train) %>% 
+              update_role(week, new_role = "ID") 
+
+df_n5_recipe <- recipe(log10_cases ~ 
+              A_N1_POS+A_N2_POS+B_N1_POS+B_N2_POS+C_N1_POS+C_N2_POS+week,
+              data = data_n5_train) %>% 
+              update_role(week, new_role = "ID") 
+
+df_n4_recipe <- recipe(log10_cases ~ 
+              A_N1_POS+A_N2_POS+B_N1_POS+B_N2_POS+C_N1_POS+C_N2_POS+week,
+              data = data_n4_train) %>% 
+              update_role(week, new_role = "ID")
+
+df_n3_recipe <- recipe(log10_cases ~ 
+              A_N1_POS+A_N2_POS+B_N1_POS+B_N2_POS+C_N1_POS+C_N2_POS+week,
+              data = data_n3_train) %>% 
+              update_role(week, new_role = "ID")
+
+df_n2_recipe <- recipe(log10_cases ~ 
+              A_N1_POS+A_N2_POS+B_N1_POS+B_N2_POS+C_N1_POS+C_N2_POS+week,
+              data = data_n2_train) %>% 
+              update_role(week, new_role = "ID")
+
+df_n1_recipe <- recipe(log10_cases ~ 
+              A_N1_POS+A_N2_POS+B_N1_POS+B_N2_POS+C_N1_POS+C_N2_POS+week,
+              data = data_n1_train) %>% 
+              update_role(week, new_role = "ID")
+```
+
+## Create workflows
+
+```{r}
+#workflow for all predictors model (to be tuned)
+df_workflow_n6 <- workflow() %>% 
+  add_model(lm_model) %>% 
+  add_recipe(df_n6_recipe)
+
+df_workflow_n5 <- workflow() %>% 
+  add_model(lm_model) %>% 
+  add_recipe(df_n5_recipe)
+
+df_workflow_n4 <- workflow() %>% 
+  add_model(lm_model) %>% 
+  add_recipe(df_n4_recipe)
+
+df_workflow_n3 <- workflow() %>% 
+  add_model(lm_model) %>% 
+  add_recipe(df_n3_recipe)
+
+df_workflow_n2 <- workflow() %>% 
+  add_model(lm_model) %>% 
+  add_recipe(df_n2_recipe)
+
+df_workflow_n1 <- workflow() %>% 
+  add_model(lm_model) %>% 
+  add_recipe(df_n1_recipe)
+
+#workflow for null models
+df_null_workflow_n6 <- workflow() %>% 
+  add_model(null_model) %>% 
+  add_recipe(df_n6_recipe)
+
+df_null_workflow_n1 <- workflow() %>% 
+  add_model(null_model) %>% 
+  add_recipe(df_n1_recipe)
+```
+
+# Model fitting & CV
+
+## n = 6
+
+```{r}
+#Training data
+#fit model
+set.seed(13)
+fit_df_n6 <- df_workflow_n6 %>% 
+  fit(data_n6_train)
+
+
+
+#create folds for cross validation 
+set.seed(13)
+folds_df_n6 <- vfold_cv(data_n6_train, 
+                        v = 10,
+                        repeats = 10)
+
+#run cross validation 
+set.seed(13)
+control <- control_resamples(save_pred = T)
+cv_df_n6 <- fit_resamples(df_workflow_n6, resamples = folds_df_n6,
+                          control = control)
+
+#calculate performance metrics 
+cv_df_n6_metrics <- collect_metrics(cv_df_n6,summarize = F)
+df_n6_metrics_sum <- collect_metrics(cv_df_n6,summarize = T) %>% 
+  mutate(lower_ci = mean-1.96*std_err,
+         upper_ci = mean+1.96*std_err)
+
+#check cross validation metrics 
+df_n6_metrics_sum 
+```
+
+```{r}
+#return data to original units and collect metrics
+
+#return data to original unit
+n6_preds_clean <- collect_predictions(cv_df_n6) %>% 
+  mutate(cases_observed = 10^log10_cases,
+         cases_predicted = 10^.pred) %>% 
+select(row=.row, fold=id2, cases_observed, cases_predicted)
+
+#collect metrics on cleaned data
+n6_rmse <- n6_preds_clean %>% 
+  group_by(fold) %>% 
+  rmse(truth = cases_observed,
+       estimate = cases_predicted) %>% 
+  summarize(avg_rmse = mean(.estimate),
+            se_rmse = sd(.estimate)/n(),
+            lower_rmse = avg_rmse-1.96*se_rmse,
+            upper_rmse = avg_rmse+1.96*se_rmse)
+
+n6_rsq <- n6_preds_clean %>% 
+  group_by(fold) %>% 
+  rsq(truth = cases_observed,
+      estimate = cases_predicted) %>% 
+  summarize(avg_rsq = mean(.estimate),
+            se_rsq = sd(.estimate)/n(),
+            lower_rsq = avg_rsq-1.96*se_rsq,
+            upper_rsq = avg_rsq+1.96*se_rsq)
+
+n6_metrics_sum <- bind_cols(n6_rmse, n6_rsq) %>% 
+  mutate(model = "lm",
+         feature = "df",
+         n = 6)
+
+n6_metrics_sum
+```
+
+```{r}
+#collect predictions and visualize
+
+#predicted vs observed
+collect_predictions(cv_df_n6) %>% 
+  ggplot(aes(log10_cases, .pred)) +
+  geom_point() +
+  stat_poly_line() +
+  stat_poly_eq(use_label("eq"))
+
+ggsave(here("figures/model_eval/pred_v_obs/LM_DF.png"))
+
+#residuals
+collect_predictions(cv_df_n6) %>% 
+  mutate(residual = .pred-log10_cases) %>% 
+  ggplot(aes(log10_cases, residual)) +
+  geom_point() +
+  stat_poly_line() +
+  stat_poly_eq(use_label("eq"))
+
+ggsave(here("figures/model_eval/residuals/LM_DF.png"))       
+```
+
+## n = 5
+
+```{r}
+#fit model to data
+set.seed(13)
+fit_df_n5 <- df_workflow_n5 %>% 
+  fit(data = data_n5_train)
+
+#create folds for cross validation
+set.seed(13)
+folds_df_n5 <- vfold_cv(data_n5_train, 
+                        v = 10,
+                        repeats = 10)
+
+
+#run cross validation
+set.seed(13)
+cv_df_n5 <- fit_resamples(df_workflow_n5, 
+                          resamples = folds_df_n5,
+                          control = control)
+
+#calculate performance metrics
+cv_df_n5_metrics <- collect_metrics(cv_df_n5,summarize = F)
+df_n5_metrics_sum <- collect_metrics(cv_df_n5,summarize = T) %>% 
+  mutate(lower_ci = mean-1.96*std_err,
+         upper_ci = mean+1.96*std_err)
+
+#check cross validation metrics
+df_n5_metrics_sum 
+```
+
+```{r}
+#return data to original units and collect metrics
+
+#return data to original unit
+n5_preds_clean <- collect_predictions(cv_df_n5) %>% 
+  mutate(cases_observed = 10^log10_cases,
+         cases_predicted = 10^.pred) %>% 
+select(row=.row, fold=id2, cases_observed, cases_predicted)
+
+#collect metrics on cleaned data
+n5_rmse <- n5_preds_clean %>% 
+  group_by(fold) %>% 
+  rmse(truth = cases_observed,
+       estimate = cases_predicted) %>% 
+  summarize(avg_rmse = mean(.estimate),
+            se_rmse = sd(.estimate)/n(),
+            lower_rmse = avg_rmse-1.96*se_rmse,
+            upper_rmse = avg_rmse+1.96*se_rmse)
+
+n5_rsq <- n5_preds_clean %>% 
+  group_by(fold) %>% 
+  rsq(truth = cases_observed,
+      estimate = cases_predicted) %>% 
+  summarize(avg_rsq = mean(.estimate),
+            se_rsq = sd(.estimate)/n(),
+            lower_rsq = avg_rsq-1.96*se_rsq,
+            upper_rsq = avg_rsq+1.96*se_rsq)
+
+n5_metrics_sum <- bind_cols(n5_rmse, n5_rsq) %>% 
+  mutate(model = "lm",
+         feature = "df",
+         n = 5)
+
+n5_metrics_sum
+```
+
+## n = 4
+
+```{r}
+#fit model to data
+set.seed(13)
+fit_df_n4 <- df_workflow_n4 %>% 
+  fit(data = data_n4_train)
+
+#create folds for cross validation
+set.seed(13)
+folds_df_n4 <- vfold_cv(data_n4_train, 
+                        v = 10,
+                        repeats = 10)
+
+#run cross validation
+set.seed(13)
+cv_df_n4 <- fit_resamples(df_workflow_n4, 
+                          resamples = folds_df_n4,
+                          control = control)
+
+#calculate performance metrics
+cv_df_n4_metrics <- collect_metrics(cv_df_n4,summarize = F)
+df_n4_metrics_sum <- collect_metrics(cv_df_n4,summarize = T) %>% 
+  mutate(lower_ci = mean-1.96*std_err,
+         upper_ci = mean+1.96*std_err)
+
+#check cross validation metrics
+df_n4_metrics_sum
+```
+
+```{r}
+#return data to original units and collect metrics
+
+#return data to original unit
+n4_preds_clean <- collect_predictions(cv_df_n4) %>% 
+  mutate(cases_observed = 10^log10_cases,
+         cases_predicted = 10^.pred) %>% 
+select(row=.row, fold=id2, cases_observed, cases_predicted)
+
+#collect metrics on cleaned data
+n4_rmse <- n4_preds_clean %>% 
+  group_by(fold) %>% 
+  rmse(truth = cases_observed,
+       estimate = cases_predicted) %>% 
+  summarize(avg_rmse = mean(.estimate),
+            se_rmse = sd(.estimate)/n(),
+            lower_rmse = avg_rmse-1.96*se_rmse,
+            upper_rmse = avg_rmse+1.96*se_rmse)
+
+n4_rsq <- n4_preds_clean %>% 
+  group_by(fold) %>% 
+  rsq(truth = cases_observed,
+      estimate = cases_predicted) %>% 
+  summarize(avg_rsq = mean(.estimate),
+            se_rsq = sd(.estimate)/n(),
+            lower_rsq = avg_rsq-1.96*se_rsq,
+            upper_rsq = avg_rsq+1.96*se_rsq)
+
+n4_metrics_sum <- bind_cols(n4_rmse, n4_rsq) %>% 
+  mutate(model = "lm",
+         feature = "df",
+         n = 4)
+
+n4_metrics_sum
+```
+
+## n = 3
+
+```{r}
+#fit model to data
+set.seed(13)
+fit_df_n3 <- df_workflow_n3 %>% 
+  fit(data = data_n3_train)
+
+#create folds for cross validation
+set.seed(13)
+folds_df_n3 <- vfold_cv(data_n3_train, 
+                        v = 10,
+                        repeats = 10)
+
+#run cross validation
+set.seed(13)
+cv_df_n3 <- fit_resamples(df_workflow_n3, 
+                          resamples = folds_df_n3,
+                          control = control)
+
+#calculate performance metrics
+cv_df_n3_metrics <- collect_metrics(cv_df_n3,summarize = F)
+df_n3_metrics_sum <- collect_metrics(cv_df_n3,summarize = T) %>% 
+  mutate(lower_ci = mean-1.96*std_err,
+         upper_ci = mean+1.96*std_err)
+
+#check cross validation metrics
+df_n3_metrics_sum 
+```
+
+### Predictions
+
+```{r}
+#return data to original unit
+n3_preds_clean <- collect_predictions(cv_df_n3) %>% 
+  mutate(cases_observed = 10^log10_cases,
+         cases_predicted = 10^.pred) %>% 
+select(row=.row, fold=id2, cases_observed, cases_predicted)
+```
+
+```{r}
+#collect metrics on cleaned data
+n3_rmse <- n3_preds_clean %>% 
+  group_by(fold) %>% 
+  rmse(truth = cases_observed,
+       estimate = cases_predicted) %>% 
+  summarize(avg_rmse = mean(.estimate),
+            se_rmse = sd(.estimate)/n(),
+            lower_rmse = avg_rmse-1.96*se_rmse,
+            upper_rmse = avg_rmse+1.96*se_rmse)
+
+n3_rsq <- n3_preds_clean %>% 
+  group_by(fold) %>% 
+  rsq(truth = cases_observed,
+      estimate = cases_predicted) %>% 
+  summarize(avg_rsq = mean(.estimate),
+            se_rsq = sd(.estimate)/n(),
+            lower_rsq = avg_rsq-1.96*se_rsq,
+            upper_rsq = avg_rsq+1.96*se_rsq)
+
+n3_metrics_sum <- bind_cols(n3_rmse, n3_rsq) %>% 
+  mutate(model = "lm",
+         feature = "df",
+         n = 3)
+
+n3_metrics_sum
+
+saveRDS(n3_metrics_sum, here("data/processed_data/model_compare/correct_metrics/LM_DF_n3.rds"))
+```
+
+```{r}
+#predicted vs observed lm
+n3_preds_clean %>% 
+  ggplot(aes(cases_observed, cases_predicted)) +
+  geom_point() +
+  ggpmisc::stat_poly_line() +
+  stat_poly_eq(use_label("eq"))
+
+ggsave(here("figures/model_eval/pred_v_obs/LM_DF_n3.png"))
+
+#residuals lm
+n3_preds_clean %>% 
+  mutate(residual = cases_predicted-cases_observed) %>% 
+  ggplot(aes(cases_observed, residual)) +
+  geom_point() +
+  stat_poly_line() +
+  stat_poly_eq(use_label("eq"))
+
+ggsave(here("figures/model_eval/residuals/LM_DF_n3.png"))
+```
+
+```{r}
+#collect predictions
+n3_pred_sum <- n3_preds_clean %>% 
+  group_by(row) %>% 
+  #summarize data
+  summarize(cases_observed = mean(cases_observed),
+            avg_pred = mean(cases_predicted),
+            se_pred = sd(cases_predicted)/n(),
+            pred_lower_ci = avg_pred-1.96*se_pred,
+            pred_upper_ci = avg_pred+1.96*se_pred)
+
+#plot summarized data
+  n3_pred_fig <- n3_pred_sum %>% ggplot(aes(x=row)) +
+  geom_line(aes(y=avg_pred), color = "#FB6A4A") +
+  geom_point(aes(y=avg_pred), color = "#FB6A4A") +
+  geom_line(aes(y=cases_observed), color = "#003e99") +
+  #geom_errorbar(aes(ymin = pred_lower_ci,
+                    #ymax = pred_upper_ci)) +
+  geom_point(aes(y=cases_observed), color = "#003e99") +
+  ggthemes::theme_clean()
+  
+n3_pred_fig
+
+ggsave(here("figures/timeseries/cross_validation/LM_DF_n3.tiff"))
+saveRDS(n3_pred_fig, here("figures/timeseries/cross_validation/LM_DF_n3.rds"))
+```
+
+### New data
+
+```{r}
+n3_new_preds <- predict(fit_df_n3, data_n3_test) %>% 
+  bind_cols(data_n3_test)
+```
+
+```{r}
+#collect predictions
+df_n3_pred_sum_test <- n3_new_preds %>%
+  #undo log10 normalization
+  mutate(cases_observed = 10^log10_cases,
+         cases_predicted = 10^.pred) %>% 
+  select(week, cases_observed, cases_predicted)
+ 
+
+ n3_pred_test_fig <- df_n3_pred_sum_test %>% ggplot(aes(x=week)) +
+  geom_line(aes(y=cases_predicted), color = "#FB6A4A") +
+  geom_point(aes(y=cases_predicted), color = "#FB6A4A") +
+  geom_line(aes(y=cases_observed), color = "#003e99") +
+  geom_point(aes(y=cases_observed), color = "#003e99") +
+  ggthemes::theme_clean()
+ 
+n3_pred_test_fig
+
+ggsave(here("figures/timeseries/cross_validation/LM_DF_n3_test.tiff"))
+saveRDS(n3_pred_test_fig, 
+        here("figures/timeseries/cross_validation/LM_DF_n3_test.rds"))
+saveRDS(df_n3_pred_sum_test, 
+        here("data/processed_data/model_compare/new_data/LM_DF_n3_preds.rds"))
+```
+
+## n = 2
+
+```{r}
+#fit model to data
+set.seed(13)
+fit_df_n2 <- df_workflow_n2 %>% 
+  fit(data = data_n2_train)
+
+#create folds for cross validation
+set.seed(13)
+folds_df_n2 <- vfold_cv(data_n2_train, 
+                        v = 10,
+                        repeats = 10)
+
+#run cross validation
+set.seed(13)
+cv_df_n2 <- fit_resamples(df_workflow_n2, 
+                          resamples = folds_df_n2,
+                          control = control)
+
+#calculate performance metrics
+cv_df_n2_metrics <- collect_metrics(cv_df_n2,summarize = F)
+df_n2_metrics_sum <- collect_metrics(cv_df_n2,summarize = T) %>% 
+  mutate(lower_ci = mean-1.96*std_err,
+         upper_ci = mean+1.96*std_err)
+
+#check cross validation metrics
+df_n2_metrics_sum 
+```
+
+```{r}
+#return data to original units and collect metrics
+
+#return data to original unit
+n2_preds_clean <- collect_predictions(cv_df_n2) %>% 
+  mutate(cases_observed = 10^log10_cases,
+         cases_predicted = 10^.pred) %>% 
+select(row=.row, fold=id2, cases_observed, cases_predicted)
+
+#collect metrics on cleaned data
+n2_rmse <- n2_preds_clean %>% 
+  group_by(fold) %>% 
+  rmse(truth = cases_observed,
+       estimate = cases_predicted) %>% 
+  summarize(avg_rmse = mean(.estimate),
+            se_rmse = sd(.estimate)/n(),
+            lower_rmse = avg_rmse-1.96*se_rmse,
+            upper_rmse = avg_rmse+1.96*se_rmse)
+
+n2_rsq <- n2_preds_clean %>% 
+  group_by(fold) %>% 
+  rsq(truth = cases_observed,
+      estimate = cases_predicted) %>% 
+  summarize(avg_rsq = mean(.estimate),
+            se_rsq = sd(.estimate)/n(),
+            lower_rsq = avg_rsq-1.96*se_rsq,
+            upper_rsq = avg_rsq+1.96*se_rsq)
+
+n2_metrics_sum <- bind_cols(n2_rmse, n2_rsq) %>% 
+  mutate(model = "lm",
+         feature = "df",
+         n = 2)
+
+n2_metrics_sum
+```
+
+```{r}
+#predicted vs observed lm
+n2_preds_clean %>% 
+  ggplot(aes(cases_observed, cases_predicted)) +
+  geom_point() +
+  ggpmisc::stat_poly_line() +
+  stat_poly_eq(use_label("eq"))
+
+ggsave(here("figures/model_eval/pred_v_obs/LM_DF_n2.png"))
+
+#residuals lm
+n2_preds_clean %>% 
+  mutate(residual = cases_predicted-cases_observed) %>% 
+  ggplot(aes(cases_observed, residual)) +
+  geom_point() +
+  stat_poly_line() +
+  stat_poly_eq(use_label("eq"))
+
+ggsave(here("figures/model_eval/residuals/LM_DF_n2.png"))
+```
+
+## n = 1
+
+```{r}
+#fit model to data
+set.seed(13)
+fit_df_n1 <- df_workflow_n1 %>% 
+  fit(data = data_n1_train)
+
+#create folds for cross validation
+set.seed(13)
+folds_df_n1 <- vfold_cv(data_n1_train, 
+                        v = 10,
+                        repeats = 10)
+
+#run cross validation
+set.seed(13)
+cv_df_n1 <- fit_resamples(df_workflow_n1, 
+                          resamples = folds_df_n1,
+                          control = control)
+
+#calculate performance metrics
+cv_df_n1_metrics <- collect_metrics(cv_df_n1,summarize = F)
+df_n1_metrics_sum <- collect_metrics(cv_df_n1,summarize = T) %>% 
+  mutate(lower_ci = mean-1.96*std_err,
+         upper_ci = mean+1.96*std_err)
+
+#check cross validation metrics
+df_n1_metrics_sum 
+```
+
+```{r}
+#return data to original units and collect metrics
+
+#return data to original unit
+n1_preds_clean <- collect_predictions(cv_df_n1) %>% 
+  mutate(cases_observed = 10^log10_cases,
+         cases_predicted = 10^.pred) %>% 
+select(row=.row, fold=id2, cases_observed, cases_predicted)
+
+#collect metrics on cleaned data
+n1_rmse <- n1_preds_clean %>% 
+  group_by(fold) %>% 
+  rmse(truth = cases_observed,
+       estimate = cases_predicted) %>% 
+  summarize(avg_rmse = mean(.estimate),
+            se_rmse = sd(.estimate)/n(),
+            lower_rmse = avg_rmse-1.96*se_rmse,
+            upper_rmse = avg_rmse+1.96*se_rmse)
+
+n1_rsq <- n1_preds_clean %>% 
+  group_by(fold) %>% 
+  rsq(truth = cases_observed,
+      estimate = cases_predicted) %>% 
+  summarize(avg_rsq = mean(.estimate),
+            se_rsq = sd(.estimate)/n(),
+            lower_rsq = avg_rsq-1.96*se_rsq,
+            upper_rsq = avg_rsq+1.96*se_rsq)
+
+n1_metrics_sum <- bind_cols(n1_rmse, n1_rsq) %>% 
+  mutate(model = "lm",
+         feature = "df",
+         n = 1)
+
+n1_metrics_sum
+```
+
+### Null model
+
+# Final fit on test data
+
+```{r}
+#fit model to data
+data_n2_test_head <- data_n2_test %>% head(18)
+
+# Fit final model on entire training set
+final_fit <- fit(df_workflow_n2, data = data_n2_train)
+
+# Predict on test set and evaluate
+test_results <- predict(final_fit, new_data = data_n2_test_head) %>%
+  bind_cols(data_n2_test_head) %>%
+  mutate(cases_observed = 10^log10_cases,
+         cases_predicted = 10^.pred) %>% 
+  metrics(truth = cases_observed, estimate = cases_predicted)
+
+test_results
+
+saveRDS(test_results, 
+        here("data/processed_data/final_fit/LM_DF_metrics.rds"))
+```
+
+```{r}
+#fit model to data
+data_n2_test_tail <- data_n2_test %>% tail(34)
+
+# Predict on test set and evaluate
+test_results2 <- predict(final_fit, new_data = data_n2_test_tail) %>%
+  bind_cols(data_n2_test_tail) %>%
+  mutate(cases_observed = 10^log10_cases,
+         cases_predicted = 10^.pred) %>% 
+  metrics(truth = cases_observed, estimate = cases_predicted)
+
+test_results2
+
+saveRDS(test_results2, 
+        here("data/processed_data/final_fit/bad_fit/LM_DF_metrics.rds"))
+```
+
+# Export results
+
+```{r}
+cv_metrics_df <- rbind(n1_metrics_sum,
+                       n2_metrics_sum,
+                       n3_metrics_sum,
+                       n4_metrics_sum,
+                       n5_metrics_sum,
+                       n6_metrics_sum)
+
+saveRDS(cv_metrics_df, 
+        here("data/processed_data/linear_reg/cv_metrics_df.rds"))
+
+#export unsummarized metrics
+cv_df_n6_metrics <- cv_df_n6_metrics %>% mutate(.config="n6",
+                                                feature="df")
+cv_df_n5_metrics <- cv_df_n5_metrics %>% mutate(.config="n5",
+                                                feature="df")
+cv_df_n4_metrics <- cv_df_n4_metrics %>% mutate(.config="n4",
+                                                feature="df")
+cv_df_n3_metrics <- cv_df_n3_metrics %>% mutate(.config="n3",
+                                                feature="df")
+cv_df_n2_metrics <- cv_df_n2_metrics %>% mutate(.config="n2",
+                                                feature="df")
+cv_df_n1_metrics <- cv_df_n1_metrics %>% mutate(.config="n1",
+                                                feature="df")
+
+cv_metrics_df_raw <- rbind(cv_df_n6_metrics,
+                       cv_df_n5_metrics,
+                       cv_df_n4_metrics,
+                       cv_df_n3_metrics,
+                       cv_df_n2_metrics,
+                       cv_df_n1_metrics)
+
+saveRDS(cv_metrics_df_raw, 
+        here("data/processed_data/linear_reg/cv_metrics_df_raw.rds"))
+```
+
+# Observed vs predicted
+
+## Training data
+
+```{r}
+#Predict on test set and evaluate
+train_preds <- predict(final_fit, new_data = data_n2_train) %>%
+  bind_cols(data_n2_train) %>%
+  mutate(cases_observed = 10^log10_cases,
+         cases_predicted = 10^.pred)
+
+#visualize timeseries of actual vs predicted data
+train_preds %>% 
+  ggplot(aes(x=week)) +
+  geom_line(aes(y=cases_predicted), color = "blue") +
+  geom_point(aes(y=cases_predicted), color = "blue") +
+  geom_line(aes(y=cases_observed), color = "red") +
+  geom_point(aes(y=cases_observed), color = "red") +
+  ggthemes::theme_clean()
+
+#export files for use in comparison script
+saveRDS(train_preds, here(
+  "data/processed_data/linear_reg/df_n2_train_predictions.rds"))
+```
+
+## New data (2022)
+
+```{r}
+#Predict on test set and evaluate
+test_preds <- predict(final_fit, new_data = data_n2_test) %>%
+  bind_cols(data_n2_test) %>%
+  mutate(cases_observed = 10^log10_cases,
+         cases_predicted = 10^.pred)
+
+test_metrics <- test_preds %>% 
+  metrics(truth = cases_observed, estimate = cases_predicted)
+
+test_metrics
+
+#visualize timeseries of actual vs predicted data
+test_preds %>% 
+  ggplot(aes(x=week)) +
+  geom_line(aes(y=cases_predicted), color = "blue") +
+  geom_point(aes(y=cases_predicted), color = "blue") +
+  geom_line(aes(y=cases_observed), color = "red") +
+  geom_point(aes(y=cases_observed), color = "red") +
+  ggthemes::theme_clean()
+
+#export files for use in comparison script
+saveRDS(test_preds, here(
+  "data/processed_data/linear_reg/df_n2_test_predictions.rds"))
+
+saveRDS(test_metrics, here(
+  "data/processed_data/linear_reg/df_n2_test_metrics.rds"))
+```

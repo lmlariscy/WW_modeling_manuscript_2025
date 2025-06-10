@@ -1,0 +1,362 @@
+---
+title: "RF and LM Comparisons"
+author: "Leah Lariscy"
+output: html_document
+---
+
+# Load packages
+
+```{r}
+library(tidyverse)
+library(here)
+library(RColorBrewer)
+library(ggpubr)
+library(tsibble)
+```
+
+# Load RDS files
+
+```{r}
+#all metrics data
+lm_metrics <- readRDS(
+  here("data/processed_data/linear_reg/metrics_compare.rds"))
+rf_metrics <- readRDS(
+  here("data/processed_data/rand_forest/metrics_compare.rds"))
+
+lm_test_rsq <- readRDS(
+  here("figures/linear_reg/metrics/rsq_test_compare.rds"))
+lm_test2_rsq <- readRDS(
+  here("figures/linear_reg/metrics/rsq_test2_compare.rds"))
+
+rf_test_rsq <- readRDS(
+  here("figures/random_forest/metrics/rsq_test_compare.rds"))
+rf_test2_rsq <- readRDS(
+  here("figures/random_forest/metrics/rsq_test2_compare.rds"))
+
+#RMSE figures
+rf_rmse <- readRDS(here("figures/random_forest/metrics/rmse_compare.rds"))
+lm_rmse <- readRDS(here("figures/linear_reg/metrics/rmse_compare.rds"))
+
+#RSQ figures
+rf_rsq <- readRDS(here("figures/random_forest/metrics/rsq_compare.rds"))
+lm_rsq <- readRDS(here("figures/linear_reg/metrics/rsq_compare.rds"))
+
+#RSQ numbers
+rf_rsq_nums <- readRDS(
+  here("data/processed_data/rand_forest/rsq_compare.rds"))
+lm_rsq_nums <- readRDS(
+  here("data/processed_data/linear_reg/rsq_compare.rds"))
+
+#RMSE numbers
+rf_rmse_nums <- readRDS(
+  here("data/processed_data/rand_forest/rmse_compare.rds"))
+lm_rmse_nums <- readRDS(
+  here("data/processed_data/linear_reg/rmse_compare.rds"))
+
+#timeseries figures (training data)
+rf_all_train <- readRDS(
+  here("figures/random_forest/time_series/all_n2_train.rds"))
+rf_df_train <- readRDS(
+  here("figures/random_forest/time_series/df_n2_train.rds"))
+rf_vl_train <- readRDS(
+  here("figures/random_forest/time_series/vl_n2_train.rds"))
+lm_all_train <- readRDS(
+  here("figures/linear_reg/time_series/all_n2_train.rds"))
+lm_df_train <- readRDS(here(
+  "figures/linear_reg/time_series/df_n2_train.rds"))
+lm_vl_train <- readRDS(
+  here("figures/linear_reg/time_series/vl_n2_train.rds"))
+
+#timeseries figures (new data)
+rf_all_test <- readRDS(
+  here("figures/random_forest/time_series/all_n2_test.rds"))
+rf_df_test <- readRDS(
+  here("figures/random_forest/time_series/df_n2_test.rds"))
+rf_vl_test <- readRDS(
+  here("figures/random_forest/time_series/vl_n2_test.rds"))
+lm_all_test <- readRDS(
+  here("figures/linear_reg/time_series/all_n2_test.rds"))
+lm_df_test <- readRDS(here(
+  "figures/linear_reg/time_series/df_n2_test.rds"))
+lm_vl_test <- readRDS(here(
+  "figures/linear_reg/time_series/vl_n2_test.rds"))
+
+#RF metrics unsummarized
+df_metrics_unsum1 <- readRDS(
+  here("data/processed_data/rand_forest/cv_metrics_df.rds"))
+vl_metrics_unsum1 <- readRDS(
+  here("data/processed_data/rand_forest/cv_metrics_vl.rds"))
+all_metrics_unsum1 <- readRDS(
+  here("data/processed_data/rand_forest/cv_metrics_all.rds"))
+
+#bind unsummarized RF metrics
+metrics_unsum_rf <- rbind(df_metrics_unsum1,
+                         vl_metrics_unsum1,
+                         all_metrics_unsum1) %>% 
+  mutate(config = paste(feature,.config,sep = "_"),
+         model = "RF") %>% 
+  select(!c(.config,.estimator))
+
+#LM metrics unsummarized
+df_metrics_unsum2 <- readRDS(
+  here("data/processed_data/linear_reg/cv_metrics_df_raw.rds"))
+vl_metrics_unsum2 <- readRDS(
+  here("data/processed_data/linear_reg/cv_metrics_vl_raw.rds"))
+all_metrics_unsum2 <- readRDS(
+  here("data/processed_data/linear_reg/cv_metrics_all_raw.rds"))
+
+#bind unsummarized LM metrics
+metrics_unsum_lm <- rbind(df_metrics_unsum2,
+                         vl_metrics_unsum2,
+                         all_metrics_unsum2) %>% 
+  mutate(config = paste(feature,.config,sep = "_"),
+         model = "LM") %>% 
+  select(!c(.config,.estimator))
+
+#bind RF and LM unsummarized metrics
+metrics_unsum <- rbind(metrics_unsum_rf,metrics_unsum_lm) %>% 
+  pivot_wider(names_from = .metric, values_from = .estimate) %>% 
+  mutate(rep = substr(config, 5,5)) %>% 
+  select(!config)
+```
+
+# Summary table
+
+```{r}
+metric_summary <- rbind(lm_metrics,rf_metrics)
+
+metric_summary
+
+write_csv(metric_summary,
+          here("data/processed_data/model_compare/model_metrics.csv"))
+
+metric_summary %>% 
+  select(!n,config) %>% 
+  group_by(model) %>% 
+  summarize_all(mean)
+```
+
+# Combine figures
+
+## RMSE
+
+```{r}
+ggarrange(rf_rmse,lm_rmse,
+          labels = c("a","b"),
+          ncol = 2)
+
+ggsave(here("figures/rf_lm_compare/rmse_compare.tiff"),
+            width=10, height=4)
+```
+
+```{r}
+rf_lm_rmse <- bind_rows(rf_rmse_nums,lm_rmse_nums) %>% 
+  arrange(avg_rmse)
+
+rf_lm_rmse
+```
+
+```{r}
+rf_lm_rmse %>% 
+  group_by(feature,model) %>% 
+  summarise(mean_rmse = mean(avg_rmse)) #%>% 
+  #arrange(mean_rmse)
+```
+
+```{r}
+rf_lm_rmse %>% 
+  group_by(model) %>% 
+  summarise(mean_rmse = mean(avg_rmse)) %>% 
+  arrange(mean_rmse)
+```
+
+## RSQ
+
+```{r}
+ggarrange(rf_rsq,lm_rsq,
+          labels = c("a","b"),
+          ncol = 1)
+
+ggsave(here("figures/rf_lm_compare/rsq_compare.tiff"),
+            width=8, height=7)
+```
+
+```{r}
+ggarrange(rf_test_rsq,lm_test_rsq,
+          rf_test2_rsq,lm_test2_rsq,
+          ncol = 2,
+          nrow = 2,
+          labels = "auto")
+
+ggsave(here("figures/rf_lm_compare/rsq_test_compare.tiff"),
+       width = 7, height = 4)
+```
+
+```{r}
+rf_lm_rsq <- bind_rows(rf_rsq_nums,lm_rsq_nums) %>% 
+  arrange(desc(avg_rsq))
+
+rf_lm_rsq
+```
+
+```{r}
+rf_lm_rsq %>% 
+  group_by(feature,model) %>% 
+  summarise(mean_rsq = mean(avg_rsq)) #%>% 
+  #arrange(desc(mean_rsq))
+```
+
+```{r}
+rf_lm_rsq %>% 
+  group_by(model) %>% 
+  summarise(mean_rsq = mean(avg_rsq)) %>% 
+  arrange(desc(mean_rsq))
+```
+
+## Timeseries - training
+
+```{r}
+ggarrange(rf_all_train,lm_all_train,rf_vl_train,
+          lm_vl_train,rf_df_train,lm_df_train,
+          labels = "auto",
+          ncol = 2,
+          nrow = 3)
+
+ggsave(here("figures/rf_lm_compare/training_timeseries.tiff"),
+       width = 10, height = 9)
+```
+
+## Timeseries - new data
+
+```{r}
+ggarrange(rf_all_test,lm_all_test,rf_vl_test,
+          lm_vl_test,rf_df_test,lm_df_test,
+          labels = "auto",
+          ncol = 2,
+          nrow = 3)
+
+ggsave(here("figures/rf_lm_compare/testing_timeseries.tiff"),
+       width = 10, height = 9)
+```
+
+# New figures
+
+## RMSE by rep \#
+
+```{r}
+metric_summary %>%
+  rename(rep = n) %>% 
+  group_by(rep) %>% 
+  summarise(avg_rmse2 = mean(avg_rmse),
+            se_rmse = sd(avg_rmse)/n(),
+            lower_rmse = avg_rmse2-1.96*se_rmse,
+            upper_rmse = avg_rmse2+1.96*se_rmse) %>% 
+  mutate(rep = as.character(rep)) %>% 
+  ggplot(aes(x = rep, y = avg_rmse2)) +
+    geom_point(size = 5, color = "black") +
+    geom_errorbar(aes(ymin = lower_rmse,
+                ymax = upper_rmse)) +
+  ggthemes::theme_clean()
+```
+
+## RSQ by rep \#
+
+```{r}
+metric_summary %>%
+  rename(rep = n) %>% 
+  group_by(rep) %>% 
+  summarise(avg_rsq2 = mean(avg_rsq),
+            se_rsq = sd(avg_rsq)/n(),
+            lower_rsq = avg_rsq2-1.96*se_rsq,
+            upper_rsq = avg_rsq2+1.96*se_rsq) %>% 
+  mutate(rep = as.character(rep)) %>% 
+  ggplot(aes(x = rep, y = avg_rsq2, color = rep)) +
+    geom_point(size = 5) +
+    geom_errorbar(aes(ymin = lower_rsq,
+                ymax = upper_rsq))
+```
+
+## RMSE by feature
+
+```{r}
+metric_summary %>%
+  group_by(feature) %>% 
+  summarise(avg_rmse2 = mean(avg_rmse),
+            se_rmse = sd(avg_rmse)/n(),
+            lower_rmse = avg_rmse2-1.96*se_rmse,
+            upper_rmse = avg_rmse2+1.96*se_rmse) %>% 
+  ggplot(aes(x = feature, y = avg_rmse2)) +
+    geom_point(size = 5, color = "black") +
+    geom_errorbar(aes(ymin = lower_rmse,
+                ymax = upper_rmse)) +
+  ggthemes::theme_clean()
+```
+
+## RSQ by feature
+
+```{r}
+metric_summary %>%
+  group_by(feature) %>% 
+  summarise(avg_rsq2 = mean(avg_rsq),
+            se_rsq = sd(avg_rsq)/n(),
+            lower_rsq = avg_rsq2-1.96*se_rsq,
+            upper_rsq = avg_rsq2+1.96*se_rsq) %>% 
+  ggplot(aes(x = feature, y = avg_rsq2)) +
+    geom_point(size = 5, color = "black") +
+    geom_errorbar(aes(ymin = lower_rsq,
+                ymax = upper_rsq)) +
+  ggthemes::theme_clean()
+```
+
+## RMSE by model
+
+```{r}
+metric_summary %>%
+  group_by(model) %>% 
+  summarise(avg_rmse2 = mean(avg_rmse),
+            se_rmse = sd(avg_rmse)/n(),
+            lower_rmse = avg_rmse2-1.96*se_rmse,
+            upper_rmse = avg_rmse2+1.96*se_rmse) %>% 
+  ggplot(aes(x = model, y = avg_rmse2)) +
+    geom_point(size = 5, color = "black") +
+    geom_errorbar(aes(ymin = lower_rmse,
+                ymax = upper_rmse)) +
+  ggthemes::theme_clean()
+```
+
+## RSQ by model
+
+```{r}
+metric_summary %>%
+  group_by(model) %>% 
+  summarise(avg_rsq2 = mean(avg_rsq),
+            se_rsq = sd(avg_rsq)/n(),
+            lower_rsq = avg_rsq2-1.96*se_rsq,
+            upper_rsq = avg_rsq2+1.96*se_rsq) %>% 
+  ggplot(aes(x = model, y = avg_rsq2, color = model)) +
+    geom_point(size = 5) +
+    geom_errorbar(aes(ymin = lower_rsq,
+                ymax = upper_rsq))
+```
+
+## RMSE by model/feature
+
+```{r}
+metric_summary %>%
+  group_by(model,feature) %>% 
+  summarise(avg_rmse2 = mean(avg_rmse),
+            se_rmse = sd(avg_rmse)/n(),
+            lower_rmse = avg_rmse2-1.96*se_rmse,
+            upper_rmse = avg_rmse2+1.96*se_rmse)
+```
+
+## RSQ by model/feature
+
+```{r}
+metric_summary %>%
+  group_by(model,feature) %>% 
+  summarise(avg_rsq2 = mean(avg_rsq),
+            se_rsq = sd(avg_rsq)/n(),
+            lower_rsq = avg_rsq2-1.96*se_rsq,
+            upper_rsq = avg_rsq2+1.96*se_rsq)
+```

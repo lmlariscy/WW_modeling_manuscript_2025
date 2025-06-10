@@ -1,0 +1,122 @@
+---
+title: "Inhibition control"
+author: "Leah Lariscy"
+date: "2025-06-10"
+output: html_document
+---
+
+# Load packages
+
+```{r}
+library(tidyverse)
+library(here)
+library(RColorBrewer)
+library(ggpubr)
+```
+
+# Load data
+
+```{r}
+#make a list of all the output files
+cfx_list <- list.files(path = here("data/raw_data/cfx_outputs"),
+                        pattern = "COL", full.names = TRUE)
+
+#read in csv files
+cfx_data <- lapply(cfx_list, read_csv)
+
+#rename data frames as collection numbers
+names(cfx_data) <- gsub(pattern = "^.*(.{3})\\.csv$",
+                        replacement = "\\1",
+                        x = basename(cfx_list))
+
+#add a variable for collection numbers
+cfx_data <- Map(function(df, name) {
+  df$Collection <- name
+  return(df)
+}, cfx_data, names(cfx_data))
+
+#combine data frames 
+cfx_combined <- bind_rows(cfx_data)
+
+#load plant data for date info
+plant <- read_csv(here("data/raw_data/updated_data/plant_data_UPDATED.csv")) %>% 
+  select(c(Collection,date)) %>% 
+  unique() %>% 
+  mutate(Collection = as.character(Collection))
+```
+
+# Wrangle data
+
+```{r}
+#pull out inhibition control samples
+inhibition_controls <- cfx_combined %>% 
+  select(Sample,Cq,Collection) %>% 
+  filter(str_detect(Sample,"RNA"),
+         str_detect(Sample, "H20", negate = T),
+         str_detect(Sample, "H2O", negate = T),
+         str_detect(Sample, "SARS", negate = T)) %>% 
+  separate(col = Sample, into = c("Plant","Sample_ID","RNA")) %>% 
+  select(!c(Sample_ID,RNA))
+
+#pull out BCoV RNA in H2O samples
+bcov <- cfx_combined %>% 
+  select(Sample,Cq,Collection) %>% 
+  filter(str_detect(Sample, "RNA"),
+         str_detect(Sample, "NO", negate = T),
+         str_detect(Sample, "MI", negate = T),
+         str_detect(Sample, "CC", negate = T),
+         str_detect(Sample, "SARS", negate = T)) %>% 
+  mutate(Cq_bcov = Cq) %>% 
+  select(!c(Sample,Cq))
+
+#combine inhibition control data with bcov in H2O data
+inhibition_combined <- left_join(inhibition_controls,bcov, by = "Collection")
+
+#combine qpcr data with plant data (contains dates)
+inhibition_dates <- left_join(inhibition_combined,plant, by = "Collection")
+
+#summarize data
+inhibition_sum <- inhibition_dates %>% group_by(date,Plant) %>% 
+  summarize(avg_cq_ww = mean(Cq),
+            avg_cq_bcov = mean(Cq_bcov),
+            se_ww = sd(Cq)/n(),
+            lower_ww = avg_cq_ww-1.96*se_ww,
+            upper_ww = avg_cq_ww+1.96*se_ww,
+            se_bcov = sd(Cq_bcov)/n(),
+            lower_bcov = avg_cq_bcov-1.96*se_bcov,
+            upper_bcov = avg_cq_bcov+1.96*se_bcov) %>% 
+  mutate(plant_id = ifelse(Plant=="NO","A",Plant),
+         plant_id = ifelse(Plant=="MI","B",plant_id),
+         plant_id = ifelse(Plant=="CC","C",plant_id),
+         diff = round(avg_cq_ww-avg_cq_bcov, digits = 2))
+```
+
+# Visualize
+
+```{r}
+inhibition_sum %>% ggplot(aes(y = date, label = diff)) +
+  geom_errorbar(aes(xmin = lower_ww, xmax = upper_ww)) +
+  geom_point(aes(x = avg_cq_ww), size = 1.5, color = "darkblue") +
+  geom_errorbar(aes(xmin = lower_bcov, xmax = upper_bcov)) +
+  geom_point(aes(x = avg_cq_bcov), size = 1.5, color = "green") +
+  #geom_text(aes(x = avg_cq_ww), size = 2.5, hjust = -.5) +
+  ggthemes::theme_calc() +
+  scale_y_date(date_breaks = "1 week") +
+  theme(axis.text.y = element_text(angle = 15)) +
+  facet_wrap(~plant_id, nrow = 1) +
+  xlab("Cq value")
+
+ggsave(here("figures/inhibition/year2_boxplot.tiff"),
+       height = 9, width = 6)
+```
+
+```{r}
+inhibition_sum %>% 
+  ggplot(aes(x=diff)) +
+  geom_histogram() +
+  ggthemes::theme_clean() +
+  xlab("Difference in Cq value") 
+
+ggsave(here("figures/inhibition/histogram.tiff"),
+       width = 8, height = 5)
+```

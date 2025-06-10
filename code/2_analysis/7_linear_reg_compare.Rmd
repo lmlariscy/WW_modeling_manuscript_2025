@@ -1,0 +1,527 @@
+---
+title: "Linear Regression Comparisons"
+author: "Leah Lariscy"
+output: html_document
+---
+
+# Load packages
+
+```{r}
+library(tidyverse)
+library(here)
+library(RColorBrewer)
+library(ggpubr)
+library(tsibble)
+library(yardstick)
+```
+
+# Load data
+
+```{r}
+#detection frequency
+df_metrics <- readRDS(here("data/processed_data/linear_reg/cv_metrics_df.rds"))
+df_test_metrics <- readRDS(
+  here("data/processed_data/final_fit/LM_DF_metrics.rds")) %>% 
+  mutate(model = "DF 2")
+df_test2_metrics <- readRDS(
+  here("data/processed_data/final_fit/bad_fit/LM_DF_metrics.rds")) %>% 
+  mutate(model = "DF 2")
+
+#viral load
+vl_metrics <- readRDS(here("data/processed_data/linear_reg/cv_metrics_vl.rds"))
+vl_test_metrics <- readRDS(
+  here("data/processed_data/final_fit/LM_VL_metrics.rds")) %>% 
+  mutate(model = "VL 2")
+vl_test2_metrics <- readRDS(
+  here("data/processed_data/final_fit/bad_fit/LM_VL_metrics.rds")) %>% 
+  mutate(model = "VL 2")
+
+#all predictors
+all_metrics <- readRDS(here("data/processed_data/linear_reg/cv_metrics_all.rds"))
+all_test_metrics <- readRDS(
+  here("data/processed_data/final_fit/LM_ALL_metrics.rds")) %>% 
+  mutate(model = "ALL 2")
+all_test2_metrics <- readRDS(
+  here("data/processed_data/final_fit/bad_fit/LM_ALL_metrics.rds")) %>% 
+  mutate(model = "ALL 2")
+
+#bind dataframes
+#undo log10 for RMSE
+metrics_compare <- rbind(df_metrics,
+                         vl_metrics,
+                         all_metrics) %>% 
+  mutate(config = paste(feature,n,sep = "_"))
+
+saveRDS(metrics_compare,
+        here("data/processed_data/linear_reg/metrics_compare.rds"))
+
+test_metrics_compare <- rbind(df_test_metrics,
+                              vl_test_metrics,
+                              all_test_metrics)
+
+test2_metrics_compare <- rbind(df_test2_metrics,
+                              vl_test2_metrics,
+                              all_test2_metrics)
+
+#detection frequency n=2 predictions
+df_n2_train_predictions <- readRDS(here(
+  "data/processed_data/linear_reg/df_n2_train_predictions.rds"))
+
+df_n2_test_predictions <- readRDS(here(
+  "data/processed_data/linear_reg/df_n2_test_predictions.rds"))
+df_n2_test_metrics <- readRDS(here(
+  "data/processed_data/linear_reg/df_n2_test_metrics.rds"))
+
+
+#all predictors n=2 predictions and rsq/rmse
+all_n2_train_predictions <- readRDS(here(
+  "data/processed_data/linear_reg/all_n2_train_predictions.rds"))
+
+all_n2_test_predictions <- readRDS(here(
+  "data/processed_data/linear_reg/all_n2_test_predictions.rds"))
+all_n2_test_metrics <- readRDS(here(
+  "data/processed_data/linear_reg/all_n2_test_metrics.rds"))
+
+#vl predictors n=2 predictions and metrics
+vl_n2_train_predictions <- readRDS(here(
+  "data/processed_data/linear_reg/vl_n2_train_predictions.rds"))
+
+vl_n2_test_predictions <- readRDS(here(
+  "data/processed_data/linear_reg/vl_n2_test_predictions.rds"))
+vl_n2_test_metrics <- readRDS(here(
+  "data/processed_data/linear_reg/vl_n2_test_metrics.rds"))
+```
+
+# Visualize
+
+## Make color palette
+
+```{r}
+# Extract the last 6 colors from the "Reds", "Greens", and "Blues" palettes
+reds <- brewer.pal(9, "Reds")[4:9]
+greens <- brewer.pal(9, "Greens")[4:9]
+blues <- brewer.pal(9, "Blues")[4:9]
+
+# Combine the colors into a single list
+color_palette <- c(reds, greens, blues)
+
+color_palette2 <- c("#238B45", "#08519C", "#CB181D")
+
+# Display the colors to confirm their distinctiveness
+print(color_palette)
+
+# Ensure the list has exactly 18 colors
+color_palette <- color_palette[1:18]
+
+# Make list for naming models in ggplot
+labels <- c("ALL 1","ALL 2","ALL 3","ALL 4","ALL 5","ALL 6",
+            "DF 1","DF 2","DF 3","DF 4","DF 5","DF 6",
+            "VL 1","VL 2","VL 3","VL 4","VL 5","VL 6")
+```
+
+## RMSE CV training
+
+```{r}
+rmse_compare <- metrics_compare %>% 
+  ggplot(aes(config, avg_rmse, color=config)) +
+  geom_point(size = 4) +
+    geom_errorbar(aes(ymin = lower_rmse,
+                ymax = upper_rmse)) +
+  ggthemes::theme_clean() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        #axis.ticks.x = element_blank(),
+        axis.text.x = element_text(angle = 20),
+        axis.title = element_text(size = 12,face = "bold"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 12),
+        legend.key.height = unit(0.6, "cm"),
+        legend.position = "none") + #no legend after all..
+  scale_color_manual(name="Configuration",
+                    #labels=labels,
+                    values = color_palette) +
+  scale_x_discrete(labels=labels) +
+  geom_hline(yintercept = 200, alpha = 0) +
+  geom_hline(yintercept = 90, alpha = 0) +
+    geom_hline(yintercept = 174,
+             linetype = "longdash",
+             linewidth = .8,
+             color = "red") +
+  annotate("text", label="Null model avg", 
+           x=16, y=180, size=4, color = "red")
+
+rmse_compare
+
+ggsave(here("figures/linear_reg/metrics/rmse_compare.png"), width = 9, height = 5)
+
+saveRDS(rmse_compare,
+        here("figures/linear_reg/metrics/rmse_compare.rds"))
+```
+
+```{r}
+rmse <- metrics_compare %>% 
+  select(model,feature,n,avg_rmse,se_rmse) %>% 
+  arrange(avg_rmse)
+
+rmse
+
+saveRDS(rmse,
+        here("data/processed_data/linear_reg/rmse_compare.rds"))
+```
+
+## RSQ CV training
+
+```{r}
+rsq_compare <- metrics_compare %>% 
+  ggplot(aes(config, avg_rsq, color=config)) +
+  geom_point(size = 4) +
+    geom_errorbar(aes(ymin = lower_rsq,
+                ymax = upper_rsq)) +
+  ggthemes::theme_clean() +
+  theme(axis.title.x = element_blank(),
+        #axis.ticks.x = element_blank(),
+        #axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 20,
+                                   size = 12,
+                                   vjust = 0.5),
+        axis.text.y = element_text(angle = 15,
+                                   size = 12),
+        axis.title = element_text(size = 14,face = "bold"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 12),
+        legend.key.height = unit(0.6, "cm"),
+        legend.position = "none") + #no legend after all..
+  scale_color_manual(name="Configuration",
+                    #labels=labels,
+                    values = color_palette) +
+  xlab("Feature selection configuration") +
+  ylab("R-Squared") +
+  scale_x_discrete(labels=labels) +
+  geom_hline(yintercept = 0.8, alpha = 0) +
+  geom_hline(yintercept = 0.07,
+             linetype = "longdash",
+             linewidth = .8,
+             color = "red") +
+  annotate("text", label="Null model avg", 
+           x=16, y=.1, size=4, color = "red")
+
+rsq_compare
+
+ggsave(here("figures/linear_reg/metrics/rsq_compare.png"), width = 9, height = 5)
+
+saveRDS(rsq_compare,
+        here("figures/linear_reg/metrics/rsq_compare.rds"))
+```
+
+```{r}
+rsq <- metrics_compare %>% 
+  select(model,feature,n,avg_rsq,se_rsq) %>% 
+  arrange(desc(avg_rsq))
+
+rsq
+
+saveRDS(rsq,
+        here("data/processed_data/linear_reg/rsq_compare.rds"))
+```
+
+## RSQ test
+
+```{r}
+#RSQ in early 2022
+test_rsq_fig <- test_metrics_compare %>% filter(.metric == "rsq") %>% 
+  ggplot(aes(model, .estimate)) +
+  geom_point(size = 4, color = color_palette2) +
+  ggthemes::theme_clean() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        #axis.ticks.x = element_blank(),
+        #axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 20,
+                                   size = 12),
+        axis.text.y = element_text(angle = 15,
+                                   size = 12),
+        axis.title = element_text(size = 14,face = "bold")) +
+  #ylab("R-Squared") +
+  geom_hline(yintercept = .9, alpha = 0) +
+  geom_hline(yintercept = .05, alpha = 0)
+
+test_rsq_fig
+
+saveRDS(test_rsq_fig, here("figures/linear_reg/metrics/rsq_test_compare.rds"))
+```
+
+```{r}
+#RSQ in late 2022
+test2_rsq_fig <- test2_metrics_compare %>% filter(.metric == "rsq") %>% 
+  ggplot(aes(model, .estimate)) +
+  geom_point(size = 4, color = color_palette2) +
+  ggthemes::theme_clean() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        #axis.ticks.x = element_blank(),
+        #axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 20,
+                                   size = 12),
+        axis.text.y = element_text(angle = 15,
+                                   size = 12),
+        axis.title = element_text(size = 14,face = "bold")) +
+  #ylab("R-Squared") +
+  geom_hline(yintercept = .9, alpha = 0) +
+  geom_hline(yintercept = .05, alpha = 0)
+
+test2_rsq_fig
+
+saveRDS(test2_rsq_fig, here("figures/linear_reg/metrics/rsq_test2_compare.rds"))
+```
+
+## Predictions
+
+### All predictors, n = 2
+
+#### Training data (2020-2021)
+
+```{r}
+all_n2_train_fig <- all_n2_train_predictions %>% 
+  head(73) %>% 
+  ggplot(aes(x=week)) +
+  geom_line(aes(y=cases_predicted), color = "#FB6A4A",
+            linewidth = 2, alpha = .5) +
+  geom_point(aes(y=cases_predicted), color = "#FB6A4A", 
+             shape = 17, size = 2) +
+  geom_line(aes(y=cases_observed), color = "#003e99",
+            linewidth = 2, alpha = .5) +
+  geom_point(aes(y=cases_observed), color = "#003e99", 
+             shape = 16, size = 2) +
+  annotate("label", label="LM ALL", 
+           x = 18940, y = 1000, size = 5) +
+  #annotate("text", label=all_n6_train_rsq_round, x=18950, y=3250, size=4) +
+  #annotate("text", label="Predicted", x=18550, y=2500, color="#FB6A4A", size=4) +
+  #annotate("text", label="Observed", x=18550, y=2650, color="#003e99", size=4) +
+  #ylab("Cases per week") +
+  #xlab("Week") +
+  geom_hline(yintercept = 1050, alpha = 0) +
+  ggthemes::theme_clean() +
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 15,
+                                   hjust = .9,
+                                   size = 12),
+        axis.text.y = element_text(angle = 15,
+                                   size = 12)) + 
+  scale_x_yearweek(date_breaks = "3 months",
+                   date_labels = "%b `%y")
+
+all_n2_train_fig
+
+ggsave(here("figures/linear_reg/time_series/all_n2_train.png"))
+
+saveRDS(all_n2_train_fig,
+        here("figures/linear_reg/time_series/all_n2_train.rds"))
+```
+
+#### New data (2022)
+
+```{r}
+all_n2_test_fig <- all_n2_test_predictions %>% 
+  ggplot(aes(x=week)) +
+  geom_line(aes(y=cases_predicted), color = "#FB6A4A", 
+            linewidth = 2, alpha = .5) +
+  geom_point(aes(y=cases_predicted), color = "#FB6A4A", 
+             shape = 17, size = 2) +
+  geom_line(aes(y=cases_observed), color = "#003e99",
+            linewidth = 2, alpha = .6) +
+  geom_point(aes(y=cases_observed), color = "#003e99",
+             size = 2) +
+  annotate("label", label="LM ALL", 
+           x = 19335, y = 1300, size = 5) +
+  #annotate("text", label="Predicted", x=19045, y=2850, color="#FB6A4A", size=4) +
+  #annotate("text", label="Observed", x=19045, y=3000, color="#003e99", size=4) +
+  #ylab("Cases") +
+  #xlab("Week") +
+  geom_vline(xintercept = 19113, linetype = 2) +
+  geom_hline(yintercept = 1350, alpha = 0) +
+  ggthemes::theme_clean() +
+  theme(axis.title = element_text(size = 12),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 15,
+                                   hjust = .9,
+                                   size = 12),
+        axis.text.y = element_text(angle = 15,
+                                   size = 12)) +
+  scale_x_yearweek(date_breaks = "3 months",
+                   date_labels = "%b `%y")
+
+all_n2_test_fig
+
+ggsave(here("figures/linear_reg/time_series/all_n2_test.png"))
+
+saveRDS(all_n2_test_fig,
+        here("figures/linear_reg/time_series/all_n2_test.rds"))
+```
+
+### Detection frequency, n = 2
+
+#### Training data (2020-2021)
+
+```{r}
+df_n2_train_fig <- df_n2_train_predictions %>% 
+  head(73) %>% 
+  ggplot(aes(x=week)) +
+  geom_line(aes(y=cases_predicted), color = "#FB6A4A",
+            linewidth = 2, alpha = .5) +
+  geom_point(aes(y=cases_predicted), color = "#FB6A4A", 
+             shape = 17, size = 2) +
+  geom_line(aes(y=cases_observed), color = "#003e99",
+            linewidth = 2, alpha = .5) +
+  geom_point(aes(y=cases_observed), color = "#003e99", 
+             shape = 16, size = 2) +
+    annotate("label", label="LM DF", 
+           x = 18950, y = 1000, size = 5) +
+  #annotate("text", label=all_n6_train_rsq_round, x=18950, y=3250, size=4) +
+  #annotate("text", label="Predicted", x=18550, y=2500, color="#FB6A4A", size=4) +
+  #annotate("text", label="Observed", x=18550, y=2650, color="#003e99", size=4) +
+  #ylab("Cases per week") +
+  #xlab("Week") +
+  geom_hline(yintercept = 1050, alpha = 0) +
+  ggthemes::theme_clean() +
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 15,
+                                   hjust = .9,
+                                   size = 12),
+        axis.text.y = element_text(angle = 15,
+                                   size = 12)) + 
+  scale_x_yearweek(date_breaks = "3 months",
+                   date_labels = "%b `%y")
+
+df_n2_train_fig
+
+ggsave(here("figures/linear_reg/time_series/df_n2_train.png"))
+
+saveRDS(df_n2_train_fig,
+        here("figures/linear_reg/time_series/df_n2_train.rds"))
+```
+
+#### New data (2022)
+
+```{r}
+df_n2_test_fig <- df_n2_test_predictions %>% 
+  ggplot(aes(x=week)) +
+  geom_line(aes(y=cases_predicted), color = "#FB6A4A",
+            linewidth = 2, alpha = .5) +
+  geom_point(aes(y=cases_predicted), color = "#FB6A4A", 
+             shape = 17, size = 2) +
+  geom_line(aes(y=cases_observed), color = "#003e99",
+            linewidth = 2, alpha = .6) +
+  geom_point(aes(y=cases_observed), color = "#003e99", 
+             size = 2) +
+    annotate("label", label="LM DF", 
+           x = 19340, y = 1300, size = 5) +
+  #annotate("text", label="Predicted", x=19045, y=2850, color="#FB6A4A", size=4) +
+  #annotate("text", label="Observed", x=19045, y=3000, color="#003e99", size=4) +
+  #ylab("Weekly reported cases") +
+  #xlab("Week") +
+  geom_vline(xintercept = 19113, linetype = 2) +
+  geom_hline(yintercept = 1350, alpha = 0) +
+  ggthemes::theme_clean() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 15,
+                                   hjust = .9,
+                                   size = 12),
+        axis.text.y = element_text(angle = 15,
+                                   size = 12)) +
+  scale_x_yearweek(date_breaks = "3 months",
+                   date_labels = "%b `%y")
+
+df_n2_test_fig
+
+ggsave(here("figures/linear_reg/time_series/df_n2_test.png"))
+
+saveRDS(df_n2_test_fig,
+        here("figures/linear_reg/time_series/df_n2_test.rds"))
+```
+
+### Viral load, n = 2
+
+#### Training data
+
+```{r}
+vl_n2_train_fig <- vl_n2_train_predictions %>% 
+  head(73) %>% 
+  ggplot(aes(x=week)) +
+  geom_line(aes(y=cases_predicted), color = "#FB6A4A",
+            linewidth = 2, alpha = .5) +
+  geom_point(aes(y=cases_predicted), color = "#FB6A4A", 
+             shape = 17, size = 2) +
+  geom_line(aes(y=cases_observed), color = "#003e99",
+            linewidth = 2, alpha = .5) +
+  geom_point(aes(y=cases_observed), color = "#003e99", 
+             shape = 16, size = 2) +
+      annotate("label", label="LM VL", 
+           x = 18950, y = 1000, size = 5) +
+  #annotate("text", label=all_n6_train_rsq_round, x=18950, y=3250, size=4) +
+  #annotate("text", label="Predicted", x=18550, y=2500, color="#FB6A4A", size=4) +
+  #annotate("text", label="Observed", x=18550, y=2650, color="#003e99", size=4) +
+  #ylab("Cases per week") +
+  #xlab("Week") +
+  geom_hline(yintercept = 1050, alpha = 0) +
+  ggthemes::theme_clean() +
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 15,
+                                   hjust = .9,
+                                   size = 12),
+        axis.text.y = element_text(angle = 15,
+                                   size = 12)) + 
+  scale_x_yearweek(date_breaks = "3 months",
+                   date_labels = "%b `%y")
+
+vl_n2_train_fig
+
+ggsave(here("figures/linear_reg/time_series/vl_n2_train.png"))
+
+saveRDS(vl_n2_train_fig,
+        here("figures/linear_reg/time_series/vl_n2_train.rds"))
+```
+
+#### New data
+
+```{r}
+vl_n2_test_fig <- vl_n2_test_predictions %>% 
+  ggplot(aes(x=week)) +
+  geom_line(aes(y=cases_predicted), color = "#FB6A4A",
+            linewidth = 2, alpha = .5) +
+  geom_point(aes(y=cases_predicted), color = "#FB6A4A", 
+             shape = 17, size = 2) +
+  geom_line(aes(y=cases_observed), color = "#003e99",
+            linewidth = 2, alpha = .6) +
+  geom_point(aes(y=cases_observed), color = "#003e99", 
+             size = 2) +
+    annotate("label", label="LM VL", 
+           x = 19340, y = 1300, size = 5) +
+  #annotate("text", label="Predicted", x=19045, y=2850, color="#FB6A4A", size=4) +
+  #annotate("text", label="Observed", x=19045, y=3000, color="#003e99", size=4) +
+  #ylab("Weekly reported cases") +
+  #xlab("Week") +
+  geom_vline(xintercept = 19113, linetype = 2) +
+  geom_hline(yintercept = 1350, alpha = 0) +
+  ggthemes::theme_clean() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 15,
+                                   hjust = .9,
+                                   size = 12),
+        axis.text.y = element_text(angle = 15,
+                                   size = 12)) +
+  scale_x_yearweek(date_breaks = "3 months",
+                   date_labels = "%b `%y")
+
+vl_n2_test_fig
+
+ggsave(here("figures/linear_reg/time_series/vl_n2_test.png"))
+
+saveRDS(vl_n2_test_fig,
+        here("figures/linear_reg/time_series/vl_n2_test.rds"))
+```

@@ -1,0 +1,68 @@
+File Name,LL_15FEB22_Omicron_Collections149-153.pcrd,,,,,
+Created By User,admin,,,,,
+Notes,,,,,,
+ID,,,,,,
+Run Started,02/15/2022 19:52:28 UTC,,,,,
+Run Ended,02/15/2022 21:09:35 UTC,,,,,
+Sample Vol,20,,,,,
+Lid Temp,95,,,,,
+Protocol File Name,Omicon_Variant_Assay.prcl,,,,,
+Plate Setup File Name,LL_15FEB22_Omicron.pltd,,,,,
+Base Serial Number,CT053861,,,,,
+Optical Head Serial Number,786BR06571,,,,,
+CFX Maestro Version,5.2.008.0222. ,,,,,
+,,,,,,
+Well group,All Wells,,,,,
+Amplification step,5,,,,,
+Melt step,,,,,,
+,,,,,,
+,,,,,,
+Well,Fluor,Target,Content,Sample,Cq,Starting Quantity (SQ)
+A01,FAM,,Unkn,no_149,35.5640576,NaN
+A02,FAM,,Unkn,no_149,37.54787321,NaN
+A03,FAM,,Unkn,no_149,39.24376741,NaN
+A05,FAM,,Unkn,cc_151,36.49017419,NaN
+A06,FAM,,Unkn,cc_151,36.72859142,NaN
+A07,FAM,,Unkn,cc_151,35.62422616,NaN
+C01,FAM,,Unkn,mi_149,35.25760761,NaN
+C02,FAM,,Unkn,mi_149,35.17469045,NaN
+C03,FAM,,Unkn,mi_149,36.00522495,NaN
+C05,FAM,,Unkn,no_152,NaN,NaN
+C06,FAM,,Unkn,no_152,NaN,NaN
+C07,FAM,,Unkn,no_152,38.951949,NaN
+E01,FAM,,Unkn,cc_149,36.74433112,NaN
+E02,FAM,,Unkn,cc_149,35.50511018,NaN
+E03,FAM,,Unkn,cc_149,36.1767976,NaN
+E05,FAM,,Unkn,mi_152,37.37489571,NaN
+E06,FAM,,Unkn,mi_152,37.91663888,NaN
+E07,FAM,,Unkn,mi_152,37.36546851,NaN
+G01,FAM,,Unkn,no_150,36.73193246,NaN
+G02,FAM,,Unkn,no_150,35.79179467,NaN
+G03,FAM,,Unkn,no_150,36.2382458,NaN
+G05,FAM,,Unkn,cc_152,38.94261833,NaN
+G06,FAM,,Unkn,cc_152,38.82405038,NaN
+G07,FAM,,Unkn,cc_152,NaN,NaN
+I01,FAM,,Unkn,mi_150,35.30688731,NaN
+I02,FAM,,Unkn,mi_150,34.64338516,NaN
+I03,FAM,,Unkn,mi_150,34.67446254,NaN
+I05,FAM,,Unkn,no_153,38.91922824,NaN
+I06,FAM,,Unkn,no_153,NaN,NaN
+I07,FAM,,Unkn,no_153,NaN,NaN
+K01,FAM,,Unkn,cc_150,37.46418836,NaN
+K02,FAM,,Unkn,cc_150,36.60495169,NaN
+K03,FAM,,Unkn,cc_150,35.83302209,NaN
+K05,FAM,,Unkn,mi_153,39.0653125,NaN
+K06,FAM,,Unkn,mi_153,NaN,NaN
+K07,FAM,,Unkn,mi_153,37.4805182,NaN
+M01,FAM,,Unkn,no_151,37.34214333,NaN
+M02,FAM,,Unkn,no_151,38.04966242,NaN
+M03,FAM,,Unkn,no_151,37.1270347,NaN
+M05,FAM,,Unkn,cc_153,37.28842098,NaN
+M06,FAM,,Unkn,cc_153,37.29450349,NaN
+M07,FAM,,Unkn,cc_153,NaN,NaN
+O01,FAM,,Unkn,mi_151,36.14174817,NaN
+O02,FAM,,Unkn,mi_151,36.80778174,NaN
+O03,FAM,,Unkn,mi_151,36.44634079,NaN
+O05,FAM,,Neg Ctrl,blank_153,NaN,NaN
+O06,FAM,,Neg Ctrl,blank_153,NaN,NaN
+O07,FAM,,Neg Ctrl,blank_153,35.75528426,NaN

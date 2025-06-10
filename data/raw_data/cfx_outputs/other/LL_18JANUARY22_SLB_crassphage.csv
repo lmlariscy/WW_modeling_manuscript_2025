@@ -1,0 +1,56 @@
+File Name,LL_18JANUARY22_SLB_crassphage.pcrd,,,,,
+Created By User,admin,,,,,
+Notes,,,,,,
+ID,,,,,,
+Run Started,01/18/2022 19:04:22 UTC,,,,,
+Run Ended,01/18/2022 20:35:39 UTC,,,,,
+Sample Vol,20,,,,,
+Lid Temp,95,,,,,
+Protocol File Name,crassphage.prcl,,,,,
+Plate Setup File Name,LL_18JANUARY22_SLB_crassphage.pltd,,,,,
+Base Serial Number,CT053861,,,,,
+Optical Head Serial Number,786BR06571,,,,,
+CFX Maestro Version,5.2.008.0222. ,,,,,
+,,,,,,
+Well group,All Wells,,,,,
+Amplification step,3,,,,,
+Melt step,,,,,,
+,,,,,,
+,,,,,,
+Well,Fluor,Target,Content,Sample,Cq,Starting Quantity (SQ)
+A01,FAM,crassphage,Unkn,SLB 11.5.21 (1),21.0252473756619,NaN
+A02,FAM,crassphage,Unkn,SLB 11.5.21 (1),21.0714205182155,NaN
+A03,FAM,crassphage,Unkn,SLB 11.5.21 (1),20.9874350097934,NaN
+A05,FAM,crassphage,Unkn,SLB 11.23.21(1),20.1166791521101,NaN
+A06,FAM,crassphage,Unkn,SLB 11.23.21(1),20.1361175575777,NaN
+A07,FAM,crassphage,Unkn,SLB 11.23.21(1),20.1746298852167,NaN
+C01,FAM,crassphage,Unkn,SLB 11.5.21 (2),21.3617751201421,NaN
+C02,FAM,crassphage,Unkn,SLB 11.5.21 (2),20.9902913632236,NaN
+C03,FAM,crassphage,Unkn,SLB 11.5.21 (2),20.8710824622605,NaN
+C05,FAM,crassphage,Unkn,SLB 11.23.21(2),22.3254712684877,NaN
+C06,FAM,crassphage,Unkn,SLB 11.23.21(2),22.2561049864587,NaN
+C07,FAM,crassphage,Unkn,SLB 11.23.21(2),22.4041892797226,NaN
+E01,FAM,crassphage,Unkn,SLB 11.9.21 (1),20.0480745868691,NaN
+E02,FAM,crassphage,Unkn,SLB 11.9.21 (1),19.5759012122789,NaN
+E03,FAM,crassphage,Unkn,SLB 11.9.21 (1),19.6880264413394,NaN
+E05,FAM,crassphage,Pos Ctrl,Positive,13.7901880861718,NaN
+E06,FAM,crassphage,Pos Ctrl,Positive,NaN,NaN
+E07,FAM,crassphage,Pos Ctrl,Positive,NaN,NaN
+G01,FAM,crassphage,Unkn,SLB 11.9.21 (2),22.327524561778,NaN
+G02,FAM,crassphage,Unkn,SLB 11.9.21 (2),21.5532325658322,NaN
+G03,FAM,crassphage,Unkn,SLB 11.9.21 (2),21.4131279495802,NaN
+G05,FAM,crassphage,Neg Ctrl,Blank,NaN,NaN
+G06,FAM,crassphage,Neg Ctrl,Blank,NaN,NaN
+G07,FAM,crassphage,Neg Ctrl,Blank,NaN,NaN
+I01,FAM,crassphage,Unkn,SLB 11.19.21(1),21.3374230106123,NaN
+I02,FAM,crassphage,Unkn,SLB 11.19.21(1),22.3654352245512,NaN
+I03,FAM,crassphage,Unkn,SLB 11.19.21(1),20.6904888221337,NaN
+K01,FAM,crassphage,Unkn,SLB 11.19.21(2),24.7934531440908,NaN
+K02,FAM,crassphage,Unkn,SLB 11.19.21(2),20.3162591357601,NaN
+K03,FAM,crassphage,Unkn,SLB 11.19.21(2),20.2390993794182,NaN
+M01,FAM,crassphage,Unkn,SLB 11.21.21(1),20.1935214194549,NaN
+M02,FAM,crassphage,Unkn,SLB 11.21.21(1),20.7503232132309,NaN
+M03,FAM,crassphage,Unkn,SLB 11.21.21(1),20.2445243839454,NaN
+O01,FAM,crassphage,Unkn,SLB 11.21.21(2),19.8257407995887,NaN
+O02,FAM,crassphage,Unkn,SLB 11.21.21(2),19.9298995536965,NaN
+O03,FAM,crassphage,Unkn,SLB 11.21.21(2),20.5963102104318,NaN

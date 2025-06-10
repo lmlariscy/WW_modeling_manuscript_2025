@@ -1,0 +1,56 @@
+File Name,LL_07JANUARY22_Omicron_Test.pcrd,,,,,
+Created By User,admin,,,,,
+Notes,,,,,,
+ID,,,,,,
+Run Started,01/07/2022 15:49:31 UTC,,,,,
+Run Ended,01/07/2022 17:06:41 UTC,,,,,
+Sample Vol,20,,,,,
+Lid Temp,95,,,,,
+Protocol File Name,Omicon_Variant_Assay.prcl,,,,,
+Plate Setup File Name,LL_07JANUARY22_Omicron_Test.pltd,,,,,
+Base Serial Number,CT053861,,,,,
+Optical Head Serial Number,786BR06571,,,,,
+CFX Maestro Version,5.2.008.0222. ,,,,,
+,,,,,,
+Well group,All Wells,,,,,
+Amplification step,5,,,,,
+Melt step,,,,,,
+,,,,,,
+,,,,,,
+Well,Fluor,Target,Content,Sample,Cq,Starting Quantity (SQ)
+A01,FAM,Hughes_Variant,Unkn,Variant_Std,NaN,NaN
+A02,FAM,Hughes_Variant,Unkn,Variant_Std,NaN,NaN
+A03,FAM,Hughes_Variant,Unkn,Variant_Std,NaN,NaN
+A05,FAM,Peterson_Var,Unkn,Variant_Std,2.91740014245631,NaN
+A06,FAM,Peterson_Var,Unkn,Variant_Std,3.08596542498091,NaN
+A07,FAM,Peterson_Var,Unkn,Variant_Std,2.77190469172524,NaN
+A09,FAM,Peterson_WT,Unkn,WT_Std,NaN,NaN
+A10,FAM,Peterson_WT,Unkn,WT_Std,NaN,NaN
+A11,FAM,Peterson_WT,Unkn,WT_Std,NaN,NaN
+C01,FAM,Hughes_Variant,Unkn,WW,34.8553459445739,NaN
+C02,FAM,Hughes_Variant,Unkn,WW,35.2854171124288,NaN
+C03,FAM,Hughes_Variant,Unkn,WW,34.4327245492895,NaN
+C05,FAM,Peterson_Var,Unkn,WW,NaN,NaN
+C06,FAM,Peterson_Var,Unkn,WW,NaN,NaN
+C07,FAM,Peterson_Var,Unkn,WW,NaN,NaN
+C09,FAM,Peterson_WT,Unkn,WW,NaN,NaN
+C10,FAM,Peterson_WT,Unkn,WW,NaN,NaN
+C11,FAM,Peterson_WT,Unkn,WW,NaN,NaN
+E01,FAM,Hughes_Variant,Unkn,WW,34.5170024902638,NaN
+E02,FAM,Hughes_Variant,Unkn,WW,34.3969452563515,NaN
+E03,FAM,Hughes_Variant,Unkn,WW,34.9847028238268,NaN
+E05,FAM,Peterson_Var,Unkn,WW,NaN,NaN
+E06,FAM,Peterson_Var,Unkn,WW,NaN,NaN
+E07,FAM,Peterson_Var,Unkn,WW,NaN,NaN
+E09,FAM,Peterson_WT,Unkn,WW,NaN,NaN
+E10,FAM,Peterson_WT,Unkn,WW,NaN,NaN
+E11,FAM,Peterson_WT,Unkn,WW,NaN,NaN
+G01,FAM,Hughes_Variant,Unkn,Blank,NaN,NaN
+G02,FAM,Hughes_Variant,Unkn,Blank,NaN,NaN
+G03,FAM,Hughes_Variant,Unkn,Blank,NaN,NaN
+G05,FAM,Peterson_Var,Unkn,Blank,NaN,NaN
+G06,FAM,Peterson_Var,Unkn,Blank,NaN,NaN
+G07,FAM,Peterson_Var,Unkn,Blank,NaN,NaN
+G09,FAM,Peterson_WT,Unkn,Blank,NaN,NaN
+G10,FAM,Peterson_WT,Unkn,Blank,NaN,NaN
+G11,FAM,Peterson_WT,Unkn,Blank,NaN,NaN

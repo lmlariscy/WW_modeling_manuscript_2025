@@ -1,0 +1,789 @@
+---
+title: "Wastewater data summary stats"
+author: "Leah Lariscy"
+output: html_document
+---
+
+# Load packages
+
+```{r}
+library(tidyverse)
+library(here)
+library(tsibble)
+library(ggpubr)
+```
+
+# Load data
+
+```{r}
+#cq data (not summarized)
+cq_unsum <- readRDS(here("data/processed_data/qpcr_plant_all.rds"))
+
+#viral load data (avg technical reps)
+viral_load_sum_tech_reps <- readRDS(here("data/processed_data/wastewater/viral_load_tech_rep_avg.rds"))
+
+#viral load data (daily avg)
+viral_load_sum_daily <- readRDS(here("data/processed_data/wastewater/viral_load_daily_avg.rds"))
+
+#viral load data (weekly avg)
+viral_load_sum_weekly <- readRDS(here("data/processed_data/wastewater/viral_load_weekly_avg.rds")) %>% 
+  select(c(week,A_N1,A_N2,B_N1,B_N2,C_N1,C_N2))
+
+#detection frequency data (daily total)
+detection_freq_unsum <- readRDS(here("data/processed_data/wastewater/detection_frequency_daily.rds")) %>% 
+  mutate(pos_rate = n_pos/n)
+
+#summarized detection frequency data (weekly total)
+detection_freq_sum <- readRDS(here("data/processed_data/wbe_covid_n6_week.rds")) %>% 
+  select(c(week,A_N1_POS,A_N2_POS,B_N1_POS,B_N2_POS,C_N1_POS,C_N2_POS))
+
+#load clinical timeseries figures
+test_admin <- readRDS(here("figures/timeseries/test_admin.rds"))
+cases_reported <- readRDS(here("figures/timeseries/cases_reported.rds"))
+```
+
+# Summarize
+
+## Total collection dates
+
+```{r}
+# Counting the number of unique collection dates
+collection_dates <- length(unique(viral_load_sum_daily$date))
+
+# Display the result
+print(paste("Number of collection dates:", collection_dates))
+```
+
+## Total collections
+
+```{r}
+total_collections <- viral_load_sum_daily %>% n_groups()
+print(paste("Number of collections:",total_collections))
+```
+
+```{r}
+viral_load_sum_daily %>% 
+  ungroup() %>% 
+  filter(facility=="A") %>% 
+  group_by(date) %>% 
+  n_groups()
+
+viral_load_sum_daily %>% 
+  ungroup() %>% 
+  filter(facility=="B") %>% 
+  group_by(date) %>% 
+  n_groups()
+
+viral_load_sum_daily %>% 
+  ungroup() %>% 
+  filter(facility=="C") %>% 
+  group_by(date) %>% 
+  n_groups()
+```
+
+## Total detections
+
+```{r}
+#count number of total biological replicates
+total_bio_reps <- cq_unsum %>% 
+  group_by(date,facility,target,biological_replicate) %>% 
+  n_groups()
+
+print(total_bio_reps)
+
+#count number of biological replicates with at least one detectable reaction
+contains_detection <- cq_unsum %>%
+  group_by(date,facility,target,biological_replicate) %>%
+  summarize(contains_detection = any(nondetect == "detect" & ct_lod == "detectable"))
+
+total_detections <- contains_detection %>% 
+  filter(contains_detection == "TRUE") %>% 
+  nrow()
+
+print(total_detections)
+
+#count number of biological replicates with no detectable reactions
+total_nondetections <- contains_detection %>% 
+  filter(contains_detection == "FALSE") %>% 
+  nrow()
+
+print(total_nondetections)
+
+#calculate total detection rate
+total_detection_freq <- total_detections/total_bio_reps
+
+print(total_detection_freq)
+```
+
+## N1 detections
+
+```{r}
+#count number of total n1 biological replicates
+total_bio_reps_n1 <- cq_unsum %>% 
+  filter(target == "N1") %>% 
+  group_by(date,facility,target,biological_replicate)
+
+print(n_groups(total_bio_reps_n1))
+
+#count number of biological replicates with at least one detectable reaction
+contains_detection_n1 <- cq_unsum %>%
+  filter(target == "N1") %>% 
+  group_by(date,facility,target,biological_replicate) %>%
+  summarize(contains_detection = any(nondetect == "detect" & ct_lod == "detectable"))
+
+total_detections_n1 <- contains_detection_n1 %>% 
+  filter(contains_detection == "TRUE") %>% 
+  nrow()
+
+print(total_detections_n1)
+
+#count number of biological replicates with no detectable reactions
+total_nondetections_n1 <- contains_detection_n1 %>% 
+  filter(contains_detection == "FALSE") %>% 
+  nrow()
+
+print(total_nondetections_n1)
+
+#calculate total detection rate
+total_detection_freq_n1 <- total_detections_n1/n_groups(total_bio_reps_n1)
+
+print(total_detection_freq_n1)
+```
+
+### Y1
+
+```{r}
+#count number of total n1 biological replicates
+total_bio_reps_n1_y1 <- cq_unsum %>% 
+  filter(target == "N1" & date <= '2021-06-30') %>% 
+  group_by(date,facility,target,biological_replicate)
+
+print(n_groups(total_bio_reps_n1_y1))
+
+#count number of biological replicates with at least one detectable reaction
+contains_detection_n1_y1 <- cq_unsum %>%
+  filter(target == "N1" & date <= '2021-06-30') %>% 
+  group_by(date,facility,target,biological_replicate) %>%
+  summarize(contains_detection = any(nondetect == "detect" & ct_lod == "detectable"))
+
+total_detections_n1_y1 <- contains_detection_n1_y1 %>% 
+  filter(contains_detection == "TRUE") %>% 
+  nrow()
+
+print(total_detections_n1_y1)
+
+#calculate total detection rate
+total_detection_freq_n1_y1 <- 
+  total_detections_n1_y1/n_groups(total_bio_reps_n1_y1)
+
+print(total_detection_freq_n1_y1)
+
+#count number of reps with all detectable reactions
+cq_unsum %>%
+  filter(target == "N1" & date <= '2021-06-30') %>% 
+  group_by(date,facility,target,biological_replicate) %>%
+  summarize(contains_detection = all(nondetect == "detect" & ct_lod == "detectable")) %>% 
+  filter(contains_detection == "TRUE") %>% 
+  nrow()
+```
+
+### Y2
+
+```{r}
+#count number of total n1 biological replicates
+total_bio_reps_n1_y2 <- cq_unsum %>% 
+  filter(target == "N1" & date > '2021-06-30') %>% 
+  group_by(date,facility,target,biological_replicate)
+
+print(n_groups(total_bio_reps_n1_y2))
+
+#count number of biological replicates with at least one detectable reaction
+contains_detection_n1_y2 <- cq_unsum %>%
+  filter(target == "N1" & date > '2021-06-30') %>% 
+  group_by(date,facility,target,biological_replicate) %>%
+  summarize(contains_detection = any(nondetect == "detect" & ct_lod == "detectable"))
+
+total_detections_n1_y2 <- contains_detection_n1_y2 %>% 
+  filter(contains_detection == "TRUE") %>% 
+  nrow()
+
+print(total_detections_n1_y2)
+
+#calculate total detection rate
+total_detection_freq_n1_y2 <- 
+  total_detections_n1_y2/n_groups(total_bio_reps_n1_y2)
+
+print(total_detection_freq_n1_y2)
+
+#count number of reps with all detectable reactions
+cq_unsum %>%
+  filter(target == "N1" & date > '2021-06-30') %>% 
+  group_by(date,facility,target,biological_replicate) %>%
+  summarize(contains_detection = all(nondetect == "detect" & ct_lod == "detectable")) %>% 
+  filter(contains_detection == "TRUE") %>% 
+  nrow()
+```
+
+## N2 detections
+
+```{r}
+#count number of total n2 biological replicates
+total_bio_reps_n2 <- cq_unsum %>% 
+  filter(target == "N2") %>% 
+  group_by(date,facility,target,biological_replicate)
+
+print(n_groups(total_bio_reps_n2))
+
+#count number of biological replicates with at least one detectable reaction
+contains_detection_n2 <- cq_unsum %>%
+  filter(target == "N2") %>% 
+  group_by(date,facility,target,biological_replicate) %>%
+  summarize(contains_detection = any(nondetect == "detect" & ct_lod == "detectable"))
+
+total_detections_n2 <- contains_detection_n2 %>% 
+  filter(contains_detection == "TRUE") %>% 
+  nrow()
+
+print(total_detections_n2)
+
+#count number of biological replicates with no detectable reactions
+total_nondetections_n2 <- contains_detection_n2 %>% 
+  filter(contains_detection == "FALSE") %>% 
+  nrow()
+
+print(total_nondetections_n2)
+
+#calculate total detection rate
+total_detection_freq_n2 <- total_detections_n2/n_groups(total_bio_reps_n2)
+
+print(total_detection_freq_n2)
+```
+
+### Y1
+
+```{r}
+#count number of total n2 biological replicates
+total_bio_reps_n2_y1 <- cq_unsum %>% 
+  filter(target == "N2" & date <= '2021-06-30') %>% 
+  group_by(date,facility,target,biological_replicate)
+
+print(n_groups(total_bio_reps_n2_y1))
+
+#count number of biological replicates with at least one detectable reaction
+contains_detection_n2_y1 <- cq_unsum %>%
+  filter(target == "N2" & date <= '2021-06-30') %>% 
+  group_by(date,facility,target,biological_replicate) %>%
+  summarize(contains_detection = any(nondetect == "detect" & ct_lod == "detectable"))
+
+total_detections_n2_y1 <- contains_detection_n2_y1 %>% 
+  filter(contains_detection == "TRUE") %>% 
+  nrow()
+
+print(total_detections_n2_y1)
+
+#calculate total detection rate
+total_detection_freq_n2_y1 <- 
+  total_detections_n2_y1/n_groups(total_bio_reps_n2_y1)
+
+print(total_detection_freq_n2_y1)
+
+#count number of reps with all detectable reactions
+cq_unsum %>%
+  filter(target == "N2" & date <= '2021-06-30') %>% 
+  group_by(date,facility,target,biological_replicate) %>%
+  summarize(contains_detection = all(nondetect == "detect" & ct_lod == "detectable")) %>% 
+  filter(contains_detection == "TRUE") %>% 
+  nrow()
+```
+
+### Y2
+
+```{r}
+#count number of total n2 biological replicates
+total_bio_reps_n2_y2 <- cq_unsum %>% 
+  filter(target == "N2" & date > '2021-06-30') %>% 
+  group_by(date,facility,target,biological_replicate)
+
+print(n_groups(total_bio_reps_n2_y2))
+
+#count number of biological replicates with at least one detectable reaction
+contains_detection_n2_y2 <- cq_unsum %>%
+  filter(target == "N2" & date > '2021-06-30') %>% 
+  group_by(date,facility,target,biological_replicate) %>%
+  summarize(contains_detection = any(nondetect == "detect" & ct_lod == "detectable"))
+
+total_detections_n2_y2 <- contains_detection_n2_y2 %>% 
+  filter(contains_detection == "TRUE") %>% 
+  nrow()
+
+print(total_detections_n2_y2)
+
+#calculate total detection rate
+total_detection_freq_n2_y2 <- 
+  total_detections_n2_y2/n_groups(total_bio_reps_n2_y2)
+
+print(total_detection_freq_n2_y2)
+
+#count number of reps with all detectable reactions
+cq_unsum %>%
+  filter(target == "N2" & date > '2021-06-30') %>% 
+  group_by(date,facility,target,biological_replicate) %>%
+  summarize(contains_detection = all(nondetect == "detect" & ct_lod == "detectable")) %>% 
+  filter(contains_detection == "TRUE") %>% 
+  nrow()
+```
+
+## Quantifiable detections
+
+```{r}
+#count number of biological replicates with quantifiable detections
+is_quantifiable <- cq_unsum %>%
+  group_by(date,facility,target,biological_replicate) %>%
+  summarize(is_quantifiable = any(ct_loq == "quantifiable" & nondetect == "detect"))
+
+total_quant <- is_quantifiable %>% 
+  filter(is_quantifiable == "TRUE") %>% 
+  nrow()
+
+print(total_quant)
+```
+
+## Non-quantifiable reactions
+
+```{r}
+(6868-total_quant)/6868
+```
+
+## All 3 tech reps positive
+
+```{r}
+all_pos <- cq_unsum %>%
+  group_by(date,facility,target,biological_replicate) %>%
+  summarize(is_quantifiable = all(ct_loq == "quantifiable" & nondetect == "detect")) %>% 
+  filter(is_quantifiable == "TRUE") %>% 
+  nrow()
+
+(4366-all_pos)/6868
+```
+
+## Quantifiable detections N1
+
+```{r}
+#count number of biological replicates with quantifiable detections
+is_quantifiable_n1 <- total_bio_reps_n1 %>%
+  summarize(is_quantifiable = any(ct_loq == "quantifiable" & nondetect == "detect"))
+
+total_quant_n1 <- is_quantifiable_n1 %>% 
+  filter(is_quantifiable == "TRUE") %>% 
+  nrow()
+
+print(total_quant_n1)
+```
+
+### Y1
+
+```{r}
+#count number of biological replicates with quantifiable detections
+is_quantifiable_n1_y1 <- total_bio_reps_n1_y1 %>%
+  summarize(is_quantifiable = any(ct_loq == "quantifiable" & nondetect == "detect"))
+
+total_quant_n1_y1 <- is_quantifiable_n1_y1 %>% 
+  filter(is_quantifiable == "TRUE") %>% 
+  nrow()
+
+print(total_quant_n1_y1)
+
+#count number of reps with all quantifiable detections
+total_bio_reps_n1_y1 %>%
+  summarize(is_quantifiable = all(ct_loq == "quantifiable" & nondetect == "detect")) %>% 
+  filter(is_quantifiable == "TRUE") %>% 
+  nrow()
+```
+
+### Y2
+
+```{r}
+#count number of biological replicates with quantifiable detections
+is_quantifiable_n1_y2 <- total_bio_reps_n1_y2 %>%
+  summarize(is_quantifiable = any(ct_loq == "quantifiable" & nondetect == "detect"))
+
+total_quant_n1_y2 <- is_quantifiable_n1_y2 %>% 
+  filter(is_quantifiable == "TRUE") %>% 
+  nrow()
+
+print(total_quant_n1_y2)
+
+#count number of reps with all quantifiable detections
+total_bio_reps_n1_y2 %>%
+  summarize(is_quantifiable = all(ct_loq == "quantifiable" & nondetect == "detect")) %>% 
+  filter(is_quantifiable == "TRUE") %>% 
+  nrow()
+```
+
+## Quantifiable detections N2
+
+```{r}
+#count number of biological replicates with quantifiable detections
+is_quantifiable_n2 <- total_bio_reps_n2 %>%
+  summarize(is_quantifiable = any(ct_loq == "quantifiable" & nondetect == "detect"))
+
+total_quant_n2 <- is_quantifiable_n2 %>% 
+  filter(is_quantifiable == "TRUE") %>% 
+  nrow()
+
+print(total_quant_n2)
+```
+
+### Y1
+
+```{r}
+#count number of biological replicates with quantifiable detections
+is_quantifiable_n2_y1 <- total_bio_reps_n2_y1 %>%
+  summarize(is_quantifiable = any(ct_loq == "quantifiable" & nondetect == "detect"))
+
+total_quant_n2_y1 <- is_quantifiable_n2_y1 %>% 
+  filter(is_quantifiable == "TRUE") %>% 
+  nrow()
+
+print(total_quant_n2_y1)
+
+#count number of reps with all quantifiable detections
+total_bio_reps_n2_y1 %>%
+  summarize(is_quantifiable = all(ct_loq == "quantifiable" & nondetect == "detect")) %>% 
+  filter(is_quantifiable == "TRUE") %>% 
+  nrow()
+```
+
+### Y2
+
+```{r}
+#count number of biological replicates with quantifiable detections
+is_quantifiable_n2_y2 <- total_bio_reps_n2_y2 %>%
+  summarize(is_quantifiable = any(ct_loq == "quantifiable" & nondetect == "detect"))
+
+total_quant_n2_y2 <- is_quantifiable_n2_y2 %>% 
+  filter(is_quantifiable == "TRUE") %>% 
+  nrow()
+
+print(total_quant_n2_y2)
+
+#count number of reps with all quantifiable detections
+total_bio_reps_n2_y2 %>%
+  summarize(is_quantifiable = all(ct_loq == "quantifiable" & nondetect == "detect")) %>% 
+  filter(is_quantifiable == "TRUE") %>% 
+  nrow()
+```
+
+## Highest copies/uL
+
+```{r}
+cq_unsum %>% 
+  group_by(date,facility,target,biological_replicate) %>% 
+  summarise(avg_cp_L = mean(copy_num_L),
+            avg_cq = mean(ct)) %>% 
+  arrange(desc(avg_cp_L))
+```
+
+## Highest viral load
+
+```{r}
+cq_unsum %>% 
+  group_by(date,facility,target) %>% 
+  summarise(avg_vl = exp(mean(log(viral_load)))) %>% 
+  filter(target == "N2") %>% 
+  arrange(desc(avg_vl))
+  #arrange(avg_vl)
+```
+
+## Highest detection freq
+
+```{r}
+detection_freq_unsum %>% 
+  arrange(desc(pos_rate))
+```
+
+## Cq ranges
+
+```{r}
+#N1 year 1
+cq_high_y1_n1 <- cq_unsum %>% 
+  filter(target == "N1" & date <= '2021-06-30') %>% 
+  arrange(desc(ct)) %>% 
+  head(1)
+
+cq_low_y1_n1 <- cq_unsum %>% 
+  filter(target == "N1" & date <= '2021-06-30') %>% 
+  arrange(ct) %>% 
+  head(1)
+
+#N1 year 2
+cq_high_y2_n1 <- cq_unsum %>% 
+  filter(target == "N1" & date >= '2021-06-30') %>% 
+  arrange(desc(ct)) %>% 
+  head(1)
+
+cq_low_y2_n1 <- cq_unsum %>% 
+  filter(target == "N1" & date >= '2021-06-30') %>% 
+  arrange(ct) %>% 
+  head(1)
+
+#N2 year 1
+cq_high_y1_n2 <- cq_unsum %>% 
+  filter(target == "N2" & date <= '2021-06-30') %>% 
+  arrange(desc(ct)) %>% 
+  head(1)
+
+cq_low_y1_n2 <- cq_unsum %>% 
+  filter(target == "N2" & date <= '2021-06-30') %>% 
+  arrange(ct) %>% 
+  head(1)
+
+#N2 year 2
+cq_high_y2_n2 <- cq_unsum %>% 
+  filter(target == "N2" & date >= '2021-06-30') %>% 
+  arrange(desc(ct)) %>% 
+  head(1)
+
+cq_low_y2_n2 <- cq_unsum %>% 
+  filter(target == "N2" & date >= '2021-06-30') %>% 
+  arrange(ct) %>% 
+  head(1)
+```
+
+# Final summaries
+
+```{r}
+#how many total samples/bio reps were tested?
+print(paste("Total reactions ran:", total_bio_reps))
+
+#how many bio reps were N1?
+print(paste("Total N1 reactions ran:", n_groups(total_bio_reps_n1)))
+
+#how many bio reps were N2?
+print(paste("Total N2 reactions ran:", n_groups(total_bio_reps_n2)))
+
+#how many total reactions were positive?
+print(paste("Total positive reactions:", total_detections)) 
+
+#how many total reactions were negative?
+print(paste("Total negative reactions:", total_nondetections))
+
+#what is the rate of positive reactions?
+print(paste("Total positive detection rate:", total_detection_freq))
+
+#how many total N1 reactions were positive?
+print(paste("Total positive N1 reactions:", total_detections_n1))
+
+#what is the rate of positive N1 reactions?
+print(paste("Total positive N1 detection rate:", total_detection_freq_n1))
+
+#how many total N2 reactions were positive?
+print(paste("Total positive N2 reactions:", total_detections_n2))
+
+#what is the rate of positive N2 reactions?
+print(paste("Total positive N2 detection rate:", total_detection_freq_n2))
+
+#how many total reactions were quantifiable?
+print(paste("Total quantifiable reactions:", total_quant))
+
+#what is the rate of quantifiable reactions out of detectable reactions?
+print(paste("Rate of quantifiable reactions out of total detected:", total_quant/total_detections))
+
+#how many total N1 reactions were quantifiable?
+print(paste("Total quantifiable N1 reactions:", total_quant_n1))
+
+#how many total N2 reactions were quantifiable?
+print(paste("Total quantifiable N2 reactions:", total_quant_n2))
+
+#what is the rate of quantifiable reactions for N1?
+print(paste("Rate of N1 quantifiable reactions:", total_quant_n1/total_detections_n1))
+
+#what is the rate of quantifiable reactions for N2?
+print(paste("Rate of N2 quantifiable reactions:", total_quant_n2/total_detections_n2))
+```
+
+```{r}
+print(paste("Year 1 N1 Cq values range from",round(cq_low_y1_n1$ct,2),"to",round(cq_high_y1_n1$ct,2)))
+
+print(paste("Year 2 N1 Cq values range from",round(cq_low_y2_n1$ct,2),"to",round(cq_high_y2_n1$ct,2)))
+
+print(paste("Year 1 N2 Cq values range from",round(cq_low_y1_n2$ct,2),"to",round(cq_high_y1_n2$ct,2)))
+
+print(paste("Year 2 N2 Cq values range from",round(cq_low_y2_n2$ct,2),"to",round(cq_high_y2_n2$ct,2)))
+```
+
+# Stats
+
+## Cq
+
+```{r}
+#Year 1
+y1_cq <- cq_unsum %>% filter(nondetect == "detect",
+                    date <= '2021-06-30') %>% 
+  select(target,ct) %>% 
+  mutate(year = "Y1")
+  
+#Year 2
+y2_cq <- cq_unsum %>% filter(nondetect == "detect",
+                    date >= '2021-06-30') %>% 
+  select(target,ct) %>% 
+  mutate(year = "Y2")
+  
+cq_summary <- rbind(y1_cq,y2_cq) %>% 
+  group_by(year,target) %>% 
+  summarise(Mean = mean(ct),
+            Median = median(ct),
+            SD = sd(ct),
+            Min = min(ct),
+            Max = max(ct))
+
+write_csv(cq_summary, 
+          here("data/processed_data/wastewater/cq_summary_stats.csv"))
+```
+
+## DF & VL
+
+```{r}
+weekly_long <- full_join(viral_load_sum_weekly,detection_freq_sum,
+                     by = "week") %>% 
+  select(!"week") %>% 
+  rename("WRFA N1 VL" = A_N1,
+         "WRFA N2 VL" = A_N2,
+         "WRFB N1 VL" = B_N1,
+         "WRFB N2 VL" = B_N2,
+         "WRFC N1 VL" = C_N1,
+         "WRFC N2 VL" = C_N2,
+         "WRFA N1 DF" = A_N1_POS,
+         "WRFA N2 DF" = A_N2_POS,
+         "WRFB N1 DF" = B_N1_POS,
+         "WRFB N2 DF" = B_N2_POS,
+         "WRFC N1 DF" = C_N1_POS,
+         "WRFC N2 DF" = C_N2_POS) %>% 
+  pivot_longer(cols = c("WRFA N1 VL",
+         "WRFA N2 VL",
+         "WRFB N1 VL",
+         "WRFB N2 VL",
+         "WRFC N1 VL",
+         "WRFC N2 VL",
+         "WRFA N1 DF",
+         "WRFA N2 DF",
+         "WRFB N1 DF",
+         "WRFB N2 DF",
+         "WRFC N1 DF",
+         "WRFC N2 DF"),
+         names_to = "Wastewater Metric")
+
+summary <- weekly_long %>% drop_na() %>% 
+  group_by(`Wastewater Metric`) %>% 
+  summarise(Mean = mean(value),
+            Median = median(value),
+            SD = sd(value),
+            Min = min(value),
+            Max = max(value))
+
+write_csv(summary, here("data/processed_data/wastewater/summary_stats.csv"))
+```
+
+# Visualize
+
+```{r}
+qpcr_periods <- data.frame(start = as.Date(c("2020-06-28", "2021-07-04")),
+                           end = as.Date(c("2021-06-27", "2023-01-01")),
+                           instrument = c("Year 1","Year 2+"))
+
+viral_load <- viral_load_sum_weekly %>% 
+  pivot_longer(cols = 2:7) %>% 
+  drop_na() %>% 
+  group_by(week) %>% 
+  summarise(mean = exp(mean(log(value)))) %>% 
+  mutate(date = as.Date(week)) %>% 
+  mutate('RT-qPCR' = if_else(date > "2021-06-29","year 2+","year 1")) %>% 
+  ggplot(aes(week,mean)) +
+  geom_point(aes(shape = `RT-qPCR`), color = "#2171B5", size = 3) +
+  geom_line(alpha = .6, color = "#2171B5", linewidth = 2) +
+  geom_vline(xintercept = 18974,linetype = 2, size = .8) +
+  ylab("Viral load") +
+  xlab("") +
+  scale_y_log10() +
+  ggthemes::theme_clean() +
+    scale_x_yearweek(date_breaks = "3 months",
+                   date_labels = "%b '%y") +
+  theme(axis.text.x = element_text(angle = 15,
+                                   hjust = .9,
+                                   size = 12),
+        axis.text.y = element_text(size = 12,
+                                   angle = 15), 
+        axis.title.y = element_text(size = 14),
+        legend.position = c(0.85, 0.85),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 12),
+        legend.margin = margin(1,1,1,1),
+        legend.direction = "horizontal") 
+
+viral_load
+
+ggsave(here("figures/timeseries/log10_viral_load.png"))
+```
+
+```{r}
+detection_freq <- detection_freq_sum %>% 
+  pivot_longer(cols = 2:7) %>% 
+  drop_na() %>% 
+  group_by(week) %>% 
+  summarise(mean = mean(value)) %>% 
+  mutate(date = as.Date(week)) %>% 
+  mutate('RT-qPCR' = if_else(date > "2021-06-29","year 2+","year 1")) %>% 
+  ggplot(aes(week,mean)) +
+  geom_point(aes(shape = `RT-qPCR`), color = "#08306B", size = 3) +
+  geom_line(alpha = .6, color = "#08306B", linewidth = 2) +
+  geom_vline(xintercept = 18974,linetype = 2, size = .8) +
+  ylab("Detection freq.") +
+  xlab("") +
+  ggthemes::theme_clean() +
+      scale_x_yearweek(date_breaks = "3 months",
+                   date_labels = "%b '%y") +
+  theme(axis.text.x = element_text(angle = 15,
+                                   hjust = .9,
+                                   size = 12),
+        axis.text.y = element_text(angle = 15,
+                                   size = 12),
+        axis.title.y = element_text(size = 14),
+        legend.position = c(0.85,0.15),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 12),
+        legend.margin = margin(1,1,1,1),
+        legend.direction = "horizontal")
+
+detection_freq
+
+ggsave(here("figures/timeseries/detection_frequency.png"))
+```
+
+## Combine figures
+
+```{r}
+wastewater_fig <- ggarrange(viral_load,detection_freq,
+          labels = c("c","d"),
+          nrow = 2,
+          ncol = 1)
+
+ggsave(here("figures/timeseries/wastewater_combined.png"),
+       width = 9,
+       height = 5)
+```
+
+```{r}
+ww_clinical_fig <- ggarrange(cases_reported,
+                             test_admin,
+                             viral_load,
+                             detection_freq,
+                   labels = "auto",
+                   label.y = 0.2,
+                   label.x = 0.01,
+                   nrow = 4,
+                   ncol = 1)
+
+ggsave(here("figures/timeseries/ww_clinical_combined.tiff"),
+       width = 10,
+       height = 10)
+```

@@ -1,0 +1,103 @@
+---
+title: "Process recovery"
+author: "Leah Lariscy"
+date: "2025-06-05"
+output: html_document
+---
+
+# Load packages
+
+```{r}
+library(tidyverse)
+library(here)
+library(RColorBrewer)
+library(ggpubr)
+```
+
+# Load data
+
+```{r}
+bcov1 <- read_csv(here("data/raw_data/calfguard.csv")) %>% 
+  select(!target)
+
+bcov2 <- read_csv(here("data/raw_data/recovery_data.csv")) %>% 
+  select(!c(target))
+
+plant <- read_csv(here("data/raw_data/updated_data/plant_data_UPDATED.csv")) %>% 
+  select(c(Collection,date)) %>% 
+  rename(sample_id = Collection) %>% 
+  unique()
+```
+
+# Process data
+
+```{r}
+bcov2_clean <- bcov2 %>% drop_na() %>% 
+  separate(sample_id, 
+           into = c("plant","sample_id","b"), sep = "_") %>% 
+  select(!b) %>% 
+  rename(ct_ww = ct) %>% 
+  mutate(ct_ww = as.numeric(ct_ww)) %>% 
+  group_by(sample_id,plant,cg_num) %>% 
+  summarize(avg_cq_ww = mean(ct_ww),
+            se_ww = sd(ct_ww)/n(),
+            lower_ww = avg_cq_ww-1.96*se_ww,
+            upper_ww = avg_cq_ww+1.96*se_ww) %>% 
+  mutate(plant_id = ifelse(plant=="NO","A",plant),
+         plant_id = ifelse(plant=="MI","B",plant_id),
+         plant_id = ifelse(plant=="CC","C",plant_id))
+```
+
+```{r}
+bcov1_clean <- bcov1 %>% mutate(sample_id = 
+                              substr(sample_id, 11, nchar(sample_id))) %>% 
+  group_by(sample_id) %>% 
+  summarize(avg_cq = mean(ct),
+            se = sd(ct)/n(),
+            lower = avg_cq-1.96*se,
+            upper = avg_cq+1.96*se) %>% 
+  select(!se) %>% 
+  rename(cg_num = sample_id) %>% 
+  mutate(cg_num = as.numeric(cg_num))
+```
+
+```{r}
+bcov_clean <- left_join(bcov2_clean,bcov1_clean, by = "cg_num") %>%
+  mutate(sample_id = as.numeric(sample_id),
+         difference = avg_cq_ww-avg_cq) %>% 
+  filter(sample_id >= 93) %>% 
+  arrange(sample_id)
+  
+
+bcov_clean_dates <- left_join(bcov_clean, plant, by = "sample_id") %>% 
+  filter(plant != "CG")
+```
+
+# Visualize
+
+```{r}
+bcov_clean_dates %>% ggplot(aes(y = date)) +
+  geom_point(aes(x = avg_cq), size = 2, color = "darkblue") +
+  geom_errorbar(aes(xmin = lower, xmax = upper)) +
+  geom_point(aes(x = avg_cq_ww), size = 2, color = "darkred") +
+  geom_errorbar(aes(xmin = lower_ww, xmax = upper_ww)) +
+  ggthemes::theme_calc() +
+  scale_y_date(date_breaks = "1 week") +
+  theme(axis.text.y = element_text(angle = 15)) +
+  facet_wrap(~plant_id, nrow = 1) +
+  xlab("Cq value")
+
+ggsave(here("figures/recovery/year2_boxplot.tiff"),
+       height = 9, width = 6)
+```
+
+```{r}
+bcov_clean_dates %>% 
+  ggplot(aes(x=difference)) +
+  geom_histogram() +
+  ggthemes::theme_clean() +
+  xlab("Difference in Cq value") 
+
+ggsave(here("figures/recovery/histogram.tiff"),
+       width = 8, height = 5)
+```

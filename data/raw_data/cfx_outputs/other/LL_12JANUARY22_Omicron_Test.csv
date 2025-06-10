@@ -1,0 +1,44 @@
+File Name,LL_12JANUARY22_Omicron_Test.pcrd,,,,,
+Created By User,admin,,,,,
+Notes,,,,,,
+ID,,,,,,
+Run Started,01/12/2022 20:20:56 UTC,,,,,
+Run Ended,01/12/2022 21:37:59 UTC,,,,,
+Sample Vol,20,,,,,
+Lid Temp,95,,,,,
+Protocol File Name,Omicon_Variant_Assay.prcl,,,,,
+Plate Setup File Name,LL_12JANUARY22_Omicron_Test.pltd,,,,,
+Base Serial Number,CT053861,,,,,
+Optical Head Serial Number,786BR06571,,,,,
+CFX Maestro Version,5.2.008.0222. ,,,,,
+,,,,,,
+Well group,All Wells,,,,,
+Amplification step,5,,,,,
+Melt step,,,,,,
+,,,,,,
+,,,,,,
+Well,Fluor,Target,Content,Sample,Cq,Starting Quantity (SQ)
+A01,FAM,Hughes_Variant,Unkn,Wuhan_Twist,NaN,NaN
+A02,FAM,Hughes_Variant,Unkn,Wuhan_Twist,NaN,NaN
+A03,FAM,Hughes_Variant,Unkn,Wuhan_Twist,NaN,NaN
+C01,FAM,Hughes_Variant,Unkn,Delta_Twist,NaN,NaN
+C02,FAM,Hughes_Variant,Unkn,Delta_Twist,NaN,NaN
+C03,FAM,Hughes_Variant,Unkn,Delta_Twist,NaN,NaN
+E01,FAM,Hughes_Variant,Unkn,Standard_10^-3,8.094569674,NaN
+E02,FAM,Hughes_Variant,Unkn,Standard_10^-3,8.104440185,NaN
+E03,FAM,Hughes_Variant,Unkn,Standard_10^-3,8.037804784,NaN
+G01,FAM,Hughes_Variant,Unkn,Standard_10^-4,12.15407549,NaN
+G02,FAM,Hughes_Variant,Unkn,Standard_10^-4,12.1025508,NaN
+G03,FAM,Hughes_Variant,Unkn,Standard_10^-4,12.07656195,NaN
+I01,FAM,Hughes_Variant,Unkn,Standard_10^-5,13.16759535,NaN
+I02,FAM,Hughes_Variant,Unkn,Standard_10^-5,13.22229663,NaN
+I03,FAM,Hughes_Variant,Unkn,Standard_10^-5,13.0729158,NaN
+K01,FAM,Hughes_Variant,Unkn,NO_124,NaN,NaN
+K02,FAM,Hughes_Variant,Unkn,NO_124,NaN,NaN
+K03,FAM,Hughes_Variant,Unkn,NO_124,NaN,NaN
+M01,FAM,Hughes_Variant,Unkn,NO_143,37.04974169,NaN
+M02,FAM,Hughes_Variant,Unkn,NO_143,36.6905531,NaN
+M03,FAM,Hughes_Variant,Unkn,NO_143,36.85580105,NaN
+O01,FAM,Hughes_Variant,Unkn,Blank,NaN,NaN
+O02,FAM,Hughes_Variant,Unkn,Blank,NaN,NaN
+O03,FAM,Hughes_Variant,Unkn,Blank,NaN,NaN
